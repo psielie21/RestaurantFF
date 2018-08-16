@@ -1,25 +1,45 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { TabNavigator, TabBarBottom } from 'react-navigation';
+import { createBottomTabNavigator, createStackNavigator } from 'react-navigation';
 
 import Colors from '../constants/Colors';
 
 import HomeScreen from '../screens/HomeScreen';
-import LinksScreen from '../screens/LinksScreen';
+import MapScreen from '../screens/MapScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import TestScreen from '../screens/TestScreen';
+import YouTubeScreen from "../screens/YouTubeScreen";
+import RecommendationDetails from "../screens/RecommendationDetails"
 
-export default TabNavigator(
+const SettingsStack = createStackNavigator({
+  Home: SettingsScreen,
+  Details: RecommendationDetails
+  },
+  {
+    navigationOptions: () => ({
+      headerMode: "none"
+    }),
+  }
+);
+
+export default createBottomTabNavigator(
   {
     Home: {
       screen: HomeScreen,
     },
-    Links: {
-      screen: LinksScreen,
+    Map: {
+      screen: MapScreen,
     },
     Settings: {
-      screen: SettingsScreen,
+      screen: SettingsStack,
     },
+    Test: {
+      screen: TestScreen
+    },
+    YouTube: {
+      screen: YouTubeScreen,
+    }
   },
   {
     navigationOptions: ({ navigation }) => ({
@@ -33,12 +53,19 @@ export default TabNavigator(
                 ? `ios-information-circle${focused ? '' : '-outline'}`
                 : 'md-information-circle';
             break;
-          case 'Links':
+          case 'Map':
             iconName = Platform.OS === 'ios' ? `ios-link${focused ? '' : '-outline'}` : 'md-link';
             break;
           case 'Settings':
             iconName =
               Platform.OS === 'ios' ? `ios-options${focused ? '' : '-outline'}` : 'md-options';
+              break;
+          case "Test":
+            iconName = "md-hammer";
+            break;
+          case "YouTube":
+            iconName = "logo-youtube";
+            break;
         }
         return (
           <Ionicons
@@ -50,7 +77,6 @@ export default TabNavigator(
         );
       },
     }),
-    tabBarComponent: TabBarBottom,
     tabBarPosition: 'bottom',
     animationEnabled: false,
     swipeEnabled: false,
