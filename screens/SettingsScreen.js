@@ -21,7 +21,8 @@ export default class SettingsScreen extends React.Component {
               location: "Munich, Germany",
               restaurant: "Wirtshaus Peters",
               text: "Ein brilliantes Wirtshaus in uriger Umgebung. Die Bedienung war freundlich und das Essen lecker!",
-              details: "These are the details of this"
+              details: "These are the details of this2",
+              img: "https://randomuser.me/api/portraits/men/0.jpg"
               },
               { user: "carlo_kne",
               fullName: "Carlo Kneißl",

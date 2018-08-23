@@ -233,7 +233,26 @@ export default class LinksScreen extends React.Component {
             style={styles.scrollView}
             contentContainerStyle={styles.endPadding}
           >
-            {this.state.markers.map((marker, index) => {
+            <TouchableNativeFeedback onPress={this._searchNearby}>
+                <View style={styles.card}>
+              <Text>{this.state.markers[0].title}</Text>
+                <View style={styles.rec}>
+                  <Image
+                        source={{uri: "https://randomuser.me/api/portraits/men/0.jpg"}}
+                        style={styles.cardImage}
+                        resizeMode="cover"
+                    />
+                    <View style={styles.textContent}>
+                      <Text numberOfLines={1} style={styles.cardtitle}>{this.state.markers[0].receptions[0].fullName}        4/5</Text>
+                      <Text numberOfLines={1} style={styles.cardDescription}>
+                        {this.state.markers[0].receptions[0].description}
+                      </Text>
+                    </View>
+                </View>
+              </View>
+              </TouchableNativeFeedback>
+
+              {this.state.markers.map((marker, index) => {
 
               return(
                 <TouchableNativeFeedback onPress={this._searchNearby}>
@@ -271,6 +290,7 @@ export default class LinksScreen extends React.Component {
             })
               
             }
+            
           </Animated.ScrollView>
 
           <Animated.View style={{backgroundColor: "rgba(130,195,150, 0.9)",
@@ -330,22 +350,22 @@ const styles = StyleSheet.create({
     display: "flex",
     flex: 1,
     flexDirection: "row",
-    marginTop: 10
+    marginTop: 10,
   },
   cardImage: {
     flex: 1,
     width: 30,
     height: 30,
-    alignSelf: "center",
-    resizeMode: "cover"
+    //alignSelf: "center",
+    //resizeMode: "cover"
   },
   textContent: {
     marginLeft: 5,
+    marginBottom: 4,
     flex: 4,
   },
   cardtitle: {
     fontSize: 12,
-    marginTop: 5,
     fontWeight: "bold",
   },
   cardDescription: {

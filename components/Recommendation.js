@@ -24,7 +24,7 @@ export default class Recommendation extends Component {
             <View style={styles.root}>
                 <View style={styles.container}>
                     <View style={styles.header}>
-                        <Image source={{uri: "https://randomuser.me/api/portraits/men/0.jpg"}} style={{width:50, height: 50}}/>
+                        <Image source={{uri: rec.img}} style={{width:50, height: 50}}/>
                         <View style={styles.metacontainer}>
                             <View style={styles.metatopcontainer}>
                                 <Text style={styles.fullName}>{rec.fullName}</Text>
@@ -36,8 +36,12 @@ export default class Recommendation extends Component {
                                     <Text style={styles.date}>{rec.date}</Text>
                                 </View>
                                 <View style={{display: "flex", flexDirection: "row"}}>
-                                    <Entypo name="location-pin" size={15} style={styles.iconNoPad}/>
-                                    <Text style={styles.location}>{rec.location}</Text>
+                                    {rec.location  && 
+                                        <Entypo name="location-pin" size={15} style={styles.iconNoPad}/>
+                                    }
+                                    {rec.location &&
+                                        <Text style={styles.location}>{rec.location}</Text>
+                                    }
                                 </View>
                                
                             </View>
@@ -53,8 +57,8 @@ export default class Recommendation extends Component {
                         </View>
                     </View>
                     <View style={styles.buttoncontainer}>
-                        <Button style={styles.button} title="Details" onPress={() => {
-                            navigate('Details', {details:  rec.details })
+                        <Button style={styles.button} title="Mehr..." onPress={() => {
+                            navigate('Details',  rec )
                             }}
                          />
                         <Button style={styles.button} title="Save" onPress = {() => _save()}

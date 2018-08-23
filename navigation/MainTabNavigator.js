@@ -9,7 +9,7 @@ import HomeScreen from '../screens/HomeScreen';
 import MapScreen from '../screens/MapScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TestScreen from '../screens/TestScreen';
-import YouTubeScreen from "../screens/YouTubeScreen";
+import SecondStep from "../screens/SecondStep";
 import RecommendationDetails from "../screens/RecommendationDetails"
 
 const SettingsStack = createStackNavigator({
@@ -20,6 +20,17 @@ const SettingsStack = createStackNavigator({
     navigationOptions: () => ({
       headerMode: "none"
     }),
+  }
+);
+
+const AddStack = createStackNavigator({
+  Home: TestScreen,
+  SecondStep: SecondStep
+  },
+  {
+    navigationOptions: () => ({
+      headerMode: "none"
+    })
   }
 );
 
@@ -35,11 +46,8 @@ export default createBottomTabNavigator(
       screen: SettingsStack,
     },
     Test: {
-      screen: TestScreen
+      screen: AddStack
     },
-    YouTube: {
-      screen: YouTubeScreen,
-    }
   },
   {
     navigationOptions: ({ navigation }) => ({
@@ -62,9 +70,6 @@ export default createBottomTabNavigator(
               break;
           case "Test":
             iconName = "md-hammer";
-            break;
-          case "YouTube":
-            iconName = "logo-youtube";
             break;
         }
         return (
