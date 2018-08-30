@@ -45,24 +45,27 @@ export default class RecommendationDetails extends React.Component {
               },
             ];
         const { navigation } = this.props;
-        const itemId = navigation.getParam('details', 'NO-ID');
-        const restaurant = navigation.getParam('restaurant', 'ERROR');
-        const location = navigation.getParam("location", "ERROR")
+        const name = navigation.getParam("name", "ERROR");
+        const adress = navigation.getParam("adress", "ERROR");
+        const zip = navigation.getParam("zip", "ERROR");
+        const city = navigation.getParam("city", "ERROR");
+        const recommendations = navigation.getParam("recommendations", "ERROR");
         //const otherParam = navigation.getParam('otherParam', 'some default value');
 
 
         return (
             <View style={styles.Component}> 
-                <Text style={styles.Title}>{restaurant}</Text>
+                <Text style={styles.Title}>{name}</Text>
                 <View style={styles.Details}>
-                    <Text>{location}</Text>
+                    <Text>{adress} {zip} {city}</Text>
                 </View>
-                <View>
+                <View style={{flex: 1}}> 
                 <FlatList
-                    data={data}
-                    renderItem={(rec) => <Recommendation rec={{user: rec.item.user, fullName: rec.item.fullName, date: rec.item.date, text: rec.item.text, img: rec.item.img}} navigation={this.props.navigation}/>
+                    data={recommendations}
+                    renderItem={(rec) => <Recommendation rec={{user: rec.item.author.username, fullName: rec.item.author.fullName, date: rec.item.date, text: rec.item.body, img: rec.item.author.avatar, rating: rec.item.rating}} navigation={this.props.navigation}/>
                     }
-                    ItemSeparatorComponent={() => <View style={{height: 7, backgroundColor: "#f1fffb"}}></View>}/>
+                    ItemSeparatorComponent={() => <View style={{height: 7, backgroundColor: "#f1fffb"}}></View>}
+                />
                 </View>         
             </View>
         )

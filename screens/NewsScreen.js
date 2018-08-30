@@ -7,7 +7,7 @@ import { createStackNavigator } from "react-navigation";
 import Recommendation from "../components/Recommendation";
 import RecommendationDetails from './RecommendationDetails';
 
-export default class SettingsScreen extends React.Component {
+export default class NewsScreen extends React.Component {
   static navigationOptions = {
     title: 'News',
   };

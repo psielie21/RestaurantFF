@@ -3,12 +3,10 @@ import {
     StyleSheet,
     Text,
     View,
-    Image,
-    Button,
     Dimensions
 } from "react-native";
 
-import { Ionicons, FontAwesome, Entypo } from '@expo/vector-icons';
+
 
 const { width, height } = Dimensions.get("window");
 

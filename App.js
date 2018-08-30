@@ -4,6 +4,12 @@ import { AppLoading, Asset, Font } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from './navigation/RootNavigation';
 import MainTabNavigation from './navigation/MainTabNavigator';
+import { ApolloProvider } from 'react-apollo';
+import  ApolloClient  from 'apollo-boost';
+
+const client = new ApolloClient({
+  uri: "https://restaurant-ff-server-psielie.c9users.io/graphql"
+})
 
 export default class App extends React.Component {
   state = {
@@ -21,10 +27,15 @@ export default class App extends React.Component {
       );
     } else {
       return (
-        <View style={styles.container}>
-          {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-          <MainTabNavigation />
-        </View>
+        
+          <View style={styles.container}>
+          <ApolloProvider client={client}>
+            {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
+            <MainTabNavigation />
+            </ApolloProvider>
+          </View>
+        
+        
       );
     }
   }

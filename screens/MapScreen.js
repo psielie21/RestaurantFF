@@ -1,11 +1,9 @@
 import React from 'react';
 import {
-  AppRegistry,
   Alert,
   StyleSheet,
   Text,
   View,
-  ScrollView,
   Animated,
   Image,
   Dimensions,
@@ -15,6 +13,9 @@ import {
 import { MapView } from 'expo';
 
 import { Entypo } from "@expo/vector-icons";
+
+import  data  from "../data";
+import Card from "../components/ThumbnailCard";
 
 const Images = [
   { uri: "https://i.imgur.com/sNam9iJ.jpg" },
@@ -32,75 +33,7 @@ export default class LinksScreen extends React.Component {
   constructor(props, context){
     super(props, context);
     this.state = {
-      op: 1,
-      markers: [
-        {
-          coordinate: {
-            latitude: 45.524548,
-            longitude: -122.6749817,
-          },
-          title: "Perc Place",
-          receptions: [
-              {
-              description: "Never had sushi that compared to  this!!",
-              username: "@tom_k",
-              fullName: "Tom Peter",
-              rating: 4,
-            },
-            {
-              description: "Never had sushi that compared to  this!!",
-              username: "@tom_k",
-              fullName: "Tom Peter",
-              rating: 4,
-            }
-          ],
-          image: Images[0],
-        },
-        {
-          coordinate: {
-            latitude: 45.524548,
-            longitude: -122.6749817,
-          },
-          title: "Perc Place",
-          receptions: [
-              {
-              description: "Never had sushi that compared to  this!!",
-              username: "@tom_k",
-              fullName: "Tom Peter",
-              rating: 4,
-            },
-            {
-              description: "Never had sushi that compared to  this!!",
-              username: "@tom_k",
-              fullName: "Tom Peter",
-              rating: 4,
-            }
-          ],
-          image: Images[0],
-        },
-        {
-          coordinate: {
-            latitude: 45.524548,
-            longitude: -122.6749817,
-          },
-          title: "Perc Place",
-          receptions: [
-              {
-              description: "Never had sushi that compared to  this!!",
-              username: "@tom_k",
-              fullName: "Tom Peter",
-              rating: 4,
-            },
-            {
-              description: "Never had sushi that compared to  this!!",
-              username: "@tom_k",
-              fullName: "Tom Peter",
-              rating: 4,
-            }
-          ],
-          image: Images[0],
-        },
-      ],
+      markers: data.getNearbyRecommendations,
       region: {
         latitude: 45.52220671242907,
         longitude: -122.6653281029795,
@@ -147,26 +80,18 @@ export default class LinksScreen extends React.Component {
         }
       }, 10);
     });
-
-    setTimeout(() => {
-      this.setState({op: 0})
-    }, 5000)
   }
 
   _searchNearby(){
     Alert.alert("haha")
   }
 
-  
 
-  
+
   render() {
-
-    console.log("HELLO");
+    const { navigate } = this.props.navigation;
     return (
       <View style={styles.container}>
-  
-     
         <MapView
           ref={map => this.map = map}
           initialRegion={this.state.region}
@@ -233,78 +158,14 @@ export default class LinksScreen extends React.Component {
             style={styles.scrollView}
             contentContainerStyle={styles.endPadding}
           >
-            <TouchableNativeFeedback onPress={this._searchNearby}>
-                <View style={styles.card}>
-              <Text>{this.state.markers[0].title}</Text>
-                <View style={styles.rec}>
-                  <Image
-                        source={{uri: "https://randomuser.me/api/portraits/men/0.jpg"}}
-                        style={styles.cardImage}
-                        resizeMode="cover"
-                    />
-                    <View style={styles.textContent}>
-                      <Text numberOfLines={1} style={styles.cardtitle}>{this.state.markers[0].receptions[0].fullName}        4/5</Text>
-                      <Text numberOfLines={1} style={styles.cardDescription}>
-                        {this.state.markers[0].receptions[0].description}
-                      </Text>
-                    </View>
-                </View>
-              </View>
-              </TouchableNativeFeedback>
 
-              {this.state.markers.map((marker, index) => {
-
-              return(
-                <TouchableNativeFeedback onPress={this._searchNearby}>
-                <View style={styles.card}>
-              <Text>{marker.title}</Text>
-                <View style={styles.rec}>
-                  <Image
-                        source={{uri: "https://randomuser.me/api/portraits/men/0.jpg"}}
-                        style={styles.cardImage}
-                        resizeMode="cover"
-                    />
-                    <View style={styles.textContent}>
-                      <Text numberOfLines={1} style={styles.cardtitle}>{marker.receptions[0].fullName}        4/5</Text>
-                      <Text numberOfLines={1} style={styles.cardDescription}>
-                        {marker.receptions[0].description}
-                      </Text>
-                    </View>
-                </View>
-                <View style={styles.rec}>
-                <Image
-                      source={{uri: "https://randomuser.me/api/portraits/men/0.jpg"}}
-                      style={styles.cardImage}
-                      resizeMode="cover"
-                />
-                  <View style={styles.textContent}>
-                    <Text numberOfLines={1} style={styles.cardtitle}>{marker.receptions[1].fullName}        1/5</Text>
-                    <Text numberOfLines={1} style={styles.cardDescription}>
-                      {marker.receptions[1].description}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              </TouchableNativeFeedback>
-              )
-            })
-              
+              {this.state.markers.map((marker, index) => (
+                <Card marker={marker} count={marker.recommendations.length} callback={() => navigate("Details", marker)}/>
+              ))  
             }
             
           </Animated.ScrollView>
 
-          <Animated.View style={{backgroundColor: "rgba(130,195,150, 0.9)",
-                                 position: "absolute",
-                                 top: height/2,
-                                 height: 20, 
-                                width: 20,
-                                borderRadius: 12,     
-                                transform: [
-                                  {scale: this.animation.interpolate({inputRange: [0.01, 410], 
-                                                                      outputRange: [1,5]})}
-                                ]
-          }}>
-          </Animated.View>
 
           <View style={styles.button}>
             <TouchableNativeFeedback  onPress={this._searchNearby}>
@@ -316,6 +177,8 @@ export default class LinksScreen extends React.Component {
 
    
   }
+
+  
 }
 
 const styles = StyleSheet.create({

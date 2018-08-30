@@ -7,25 +7,28 @@ import Colors from '../constants/Colors';
 
 import HomeScreen from '../screens/HomeScreen';
 import MapScreen from '../screens/MapScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import TestScreen from '../screens/TestScreen';
+import NewsScreen from '../screens/NewsScreen';
+import CreateScreen from '../screens/CreateScreen';
 import SecondStep from "../screens/SecondStep";
-import RecommendationDetails from "../screens/RecommendationDetails"
+import RecommendationDetails from "../screens/RecommendationDetails";
+import AddRestaurantScreen from "../screens/AddRestaurantScreen";
 
-const SettingsStack = createStackNavigator({
-  Home: SettingsScreen,
+const MapStack = createStackNavigator({
+  Home: MapScreen,
   Details: RecommendationDetails
   },
   {
     navigationOptions: () => ({
       headerMode: "none"
-    }),
+    })
   }
-);
+)
+
 
 const AddStack = createStackNavigator({
-  Home: TestScreen,
-  SecondStep: SecondStep
+  Home: CreateScreen,
+  SecondStep: SecondStep,
+  AddRest: AddRestaurantScreen,
   },
   {
     navigationOptions: () => ({
@@ -40,12 +43,12 @@ export default createBottomTabNavigator(
       screen: HomeScreen,
     },
     Map: {
-      screen: MapScreen,
+      screen: MapStack,
     },
-    Settings: {
-      screen: SettingsStack,
+    News: {
+      screen: NewsScreen,
     },
-    Test: {
+    Create: {
       screen: AddStack
     },
   },
@@ -62,14 +65,15 @@ export default createBottomTabNavigator(
                 : 'md-information-circle';
             break;
           case 'Map':
-            iconName = Platform.OS === 'ios' ? `ios-link${focused ? '' : '-outline'}` : 'md-link';
+            iconName = Platform.OS === 'ios' ? `ios-map${focused ? '' : '-outline'}` : 'md-map';
             break;
-          case 'Settings':
+          case 'News':
             iconName =
-              Platform.OS === 'ios' ? `ios-options${focused ? '' : '-outline'}` : 'md-options';
+              Platform.OS === 'ios' ? `ios-globe${focused ? '' : '-outline'}` : 'md-globe';
               break;
-          case "Test":
-            iconName = "md-hammer";
+          case "Create":
+            iconName = 
+              Platform.OS === 'ios' ? `ios-create${focused ? '' : '-outline'}` : 'md-create';
             break;
         }
         return (

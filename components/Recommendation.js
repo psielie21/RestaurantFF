@@ -1,20 +1,49 @@
 import React, { Component } from "react";
 import {
-    Platform,
     StyleSheet,
     Text,
     View,
     Image,
-    TouchableOpacity,
     Button
 } from "react-native";
+import ViewMoreText from 'react-native-view-more-text';
 
-import { Ionicons, FontAwesome, Entypo } from '@expo/vector-icons';
+import { FontAwesome, Entypo, MaterialIcons } from '@expo/vector-icons';
 
 export default class Recommendation extends Component {
+    renderViewMore(onPress){
+        return(
+          <Text onPress={onPress}>View more</Text>
+        )
+      }
+
+      renderViewLess(onPress){
+        return(
+          <Text onPress={onPress}>View less</Text>
+        )
+      }
+
+    renderStars(rec){
+        let elem = [];
+        for(let i = 1; i <= rec.rating; i++){
+            elem.push(<MaterialIcons key={i} name={"star"} size={30}/>)
+        }
+
+        for(let i = rec.rating+1; i <= 5; i++){
+            elem.push(<MaterialIcons key={i} name={"star-border"} size={30}/>)
+        }
+
+        return elem
+    }  
+
     render() {
         let rec = this.props.rec;
         const { navigate } = this.props.navigation;
+
+        this.state = {
+            nol: 3,
+            expanded: false
+        }
 
         const _save = () => {
 
@@ -51,22 +80,25 @@ export default class Recommendation extends Component {
                     </View>
                     <View style={styles.body}>
                         <Text style={styles.restaurant}>{rec.restaurant}</Text>
-                        <Text style={styles.text}>"{rec.text}"</Text>
+                        <ViewMoreText
+                            numberOfLines={3}
+                            renderViewMore={this.renderViewMore}
+                            renderViewLess={this.renderViewLess}
+                        >
+                            <Text style={styles.text}>"{rec.text}"</Text>
+                        </ViewMoreText>
+
                         <View style={styles.rating}>
 
+                            {
+                                this.renderStars(rec)
+                            }
+
                         </View>
-                    </View>
-                    <View style={styles.buttoncontainer}>
-                        <Button style={styles.button} title="Mehr..." onPress={() => {
-                            navigate('Details',  rec )
-                            }}
-                         />
-                        <Button style={styles.button} title="Save" onPress = {() => _save()}
-                        
-                        />
-                    </View>
                 </View>
+
             </View>
+        </View>
         )
     }
 
@@ -134,14 +166,23 @@ const styles = StyleSheet.create({
         paddingTop: 3,
         textAlign: "center"
     },
-    text : {
+    textContainer: {
+        //maxHeight: 30
         paddingRight: 20,
         paddingLeft: 20,
+    },
+    text : {
+        
         fontSize: 15,
         fontStyle: "italic"
     },
     rating : {
-
+        marginTop: 20,
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        paddingLeft: 40,
+        paddingRight: 40,
     },
     buttoncontainer : {
         display: "flex",

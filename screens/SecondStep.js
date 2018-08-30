@@ -1,26 +1,52 @@
 import React from "react";
-import { View, Text, StyleSheet, TextInput, Alert, TouchableOpacity, Button} from "react-native";
+import { View, Text, StyleSheet, TextInput, Animated, TouchableOpacity, Button, ActivityIndicator} from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";
 
 
-export default class TestScreen extends React.Component {
-    constructor(props){
-        super(props);
-        this.state = {stars:1}
-    }
+export default class SecondStep extends React.Component {
     static navigationOptions = {
         title: 'Details',
       };
 
+    
+    
+
+    constructor(props){
+        super(props);
+        this.state = {
+            stars: 1,  
+            anim: new Animated.Value(1),
+            fetching: false
+        }
+        
+    }
+
+    onSubmit(){
+        this.setState({
+            fetching: true,
+        })
+        
+
+        setTimeout(() => {
+            Animated.timing(this.state.anim,
+                {
+                    toValue: 0,
+                    duration: 500
+                }
+            ).start();
+            this.setState({
+                fetching: false
+            })
+        }, 2500)
+    }
+
     render(){
-        const { navigation } = this.props;
-        const city = navigation.getParam('city', 'ERROR');
+        const { navigation } = this.props; 
         const name = navigation.getParam('name', 'ERROR');
-        const address = navigation.getParam("address", "ERROR")
-        const zip = navigation.getParam("zip", "ERROR")
-        //const otherParam = navigation.getParam('otherParam', 'some default value');
-      
+        const neg = Animated.add(1, Animated.multiply(-1, this.state.anim))
+
+
         return (
           <View style={styles.root}>
             <Text style={styles.title}>{name}</Text>
@@ -71,10 +97,20 @@ export default class TestScreen extends React.Component {
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.submitContainer}>
-                <Button style={styles.button} title="Speichern" onPress = {() => Alert.alert("Super")}/>
+            <Animated.View style={[styles.submitContainer, {opacity: this.state.anim}]}>
+                <Button title="Speichern" onPress = { () => this.onSubmit()}/>
+            </Animated.View>
+
+            <View style={styles.successContainer}>
+                {this.state.fetching &&
+                    <ActivityIndicator size="large" color="#0000ff" />
+                }
+                <Animated.View style={[styles.check, {opacity: neg}]}>
+                    <MaterialIcons name={"check"} size={30} />
+                </Animated.View>
             </View>
-            
+
+                
           </View>
             
         )
@@ -88,7 +124,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: "bold",
-    textAlign: "center",
     fontSize: 33
   },
   textboxContainer: {
@@ -115,9 +150,22 @@ const styles = StyleSheet.create({
     marginTop: 30,
     display: "flex",
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
+    opacity: 0
   },
-  button: {
-
+  successContainer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  check: {
+    borderRadius: 100,
+    width: 40,
+    backgroundColor: "rgb(50, 200, 70)",
+    padding: 5,
+    display: "flex",
+    justifyContent: "center",
+    elevation: 3,
   }
 })
