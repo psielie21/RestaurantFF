@@ -39,7 +39,7 @@ const AddStack = createStackNavigator({
 
 export default createBottomTabNavigator(
   {
-    Home: {
+    Main: {
       screen: HomeScreen,
     },
     Map: {
@@ -51,6 +51,7 @@ export default createBottomTabNavigator(
     Create: {
       screen: AddStack
     },
+    
   },
   {
     navigationOptions: ({ navigation }) => ({
@@ -58,7 +59,7 @@ export default createBottomTabNavigator(
         const { routeName } = navigation.state;
         let iconName;
         switch (routeName) {
-          case 'Home':
+          case 'Main':
             iconName =
               Platform.OS === 'ios'
                 ? `ios-information-circle${focused ? '' : '-outline'}`

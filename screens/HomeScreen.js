@@ -8,16 +8,20 @@ import {
   Dimensions,
   Button,
   View,
+  AsyncStorage
 } from 'react-native';
+import { connect } from 'react-redux';
 
+import { logout } from "../actions/user"
 import data from "../data.js";
+
 
 
 const { width, height } = Dimensions.get("window");
 
-export default class HomeScreen extends React.Component {
+class HomeScreen extends React.Component {
   static navigationOptions = {
-    header: "Profil",
+    title: 'Profil',
   };
 
   render() {
@@ -35,7 +39,12 @@ export default class HomeScreen extends React.Component {
             <View styles={styles.row}><Text style={styles.wrapperText}><Text style={styles.firstCol}>Mitglied seit: </Text><Text style={styles.since}>04.02.00</Text></Text></View>
           </View>
           
-          <Button title="Ausloggen" color={"red"}></Button>
+          <Button title="Ausloggen" onPress={async() => {
+            await AsyncStorage.clear();
+            this.props.navigation.navigate('Auth');
+            //await AsyncStorage.removeItem('@restauranttoken');
+            //this.props.logout();
+          }} color={"red"}></Button>
         </ScrollView>
       </View>
     );
@@ -78,3 +87,6 @@ const styles = StyleSheet.create({
     backgroundColor: "blue"
   }
 });
+
+//export default connect(undefined , { logout })(HomeScreen)
+export default HomeScreen

@@ -10,7 +10,9 @@ import {
   TouchableNativeFeedback
 } from "react-native";
 
-import { MapView } from 'expo';
+import { MapView, Permissions, Location } from 'expo';
+import { Query } from "react-apollo";
+import gql from "graphql-tag";
 
 import { Entypo } from "@expo/vector-icons";
 
@@ -23,6 +25,32 @@ const Images = [
   { uri: "https://i.imgur.com/UDrH0wm.jpg" },
   { uri: "https://i.imgur.com/Ka8kNST.jpg" }
 ]
+
+const GET_NEARBY_RECOMMENDATIONS = gql`
+  query GetNearbyRecommendations($coords: String!, $distance: Float){
+    getNearbyRecommendations(coords: $coords, distance: $distance){
+      name
+      _id
+      location {
+        lat
+        lon
+      }
+      adress
+      city
+      zip
+      recommendations {
+        body
+        createdAt
+        rating
+        author {
+          firstName
+          lastName
+          avatar
+        }
+      }
+    }
+  }
+`;
 
 const { width, height } = Dimensions.get("window");
 
@@ -37,8 +65,8 @@ export default class LinksScreen extends React.Component {
       region: {
         latitude: 45.52220671242907,
         longitude: -122.6653281029795,
-        latitudeDelta: 0.04864195044303443,
-        longitudeDelta: 0.040142817690068,
+        latitudeDelta: 0.01864195044303443,
+        longitudeDelta: 0.010142817690068,
       },
     };
 
@@ -82,8 +110,19 @@ export default class LinksScreen extends React.Component {
     });
   }
 
-  _searchNearby(){
-    Alert.alert("haha")
+  async _searchNearby(data){
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    if (status !== 'granted') {
+      Alert.alert("GPS benötigt für die Karte")
+      return;
+    }
+
+    this.setState(() => ({
+      markers: data.getNearbyRecommendations
+    }))
+
+    console.log(data.getNearbyRecommendations.length)
+    
   }
 
 
@@ -97,6 +136,10 @@ export default class LinksScreen extends React.Component {
           initialRegion={this.state.region}
           style={styles.container}
         >
+        {this.state.userPos &&
+          <MapView.Marker coordinate={this.state.userPos}/>
+        }
+        
           {this.state.markers.map((marker, index) => {
             const inputRange = [
               (index - 1) * CARD_WIDTH,
@@ -160,17 +203,32 @@ export default class LinksScreen extends React.Component {
           >
 
               {this.state.markers.map((marker, index) => (
-                <Card marker={marker} count={marker.recommendations.length} callback={() => navigate("Details", marker)}/>
+                <Card marker={marker} key={marker._id} count={marker.recommendations.length} callback={() => navigate("Details", marker)}/>
               ))  
             }
             
           </Animated.ScrollView>
 
 
-          <View style={styles.button}>
-            <TouchableNativeFeedback  onPress={this._searchNearby}>
-              <Entypo name={"compass"} size={35} style={styles.icon}/>     
-            </TouchableNativeFeedback>
+            <View style={styles.button}>
+              <Query query={GET_NEARBY_RECOMMENDATIONS}  onCompleted={ (data) => this._searchNearby(data)}>
+                {({ loading, error, data, refetch, networkStatus }) => (
+                  <TouchableNativeFeedback  onPress={async() => {
+                    let location = await Location.getCurrentPositionAsync({});
+                    this.setState(() => ({
+                      userPos: {
+                        latitude: location.coords.latitude,
+                        longitude: location.coords.longitude
+                      }
+                    }))
+                    refetch({ coords: this.state.userPos.longitude + ", " + this.state.userPos.latitude, distance: 500000000 })
+                    }
+                    }>
+                    <Entypo name={"compass"} size={35} style={styles.icon}/>     
+                  </TouchableNativeFeedback>
+                  )
+                }
+              </Query>
           </View>
         </View>
     );

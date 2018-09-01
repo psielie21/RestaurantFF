@@ -8,7 +8,6 @@ import gql from "graphql-tag";
 
 import Restaurant from "../components/Restaurant";
 import data from "../data";
-import { UniqueFragmentNames } from "graphql/validation/rules/UniqueFragmentNames";
 
 const GET_RESTAURANTS_QUERY = gql`
 query Restaurants($name: String!){

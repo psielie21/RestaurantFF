@@ -69,14 +69,13 @@ export default class AddRestaurantScreen extends React.Component {
                 
             </View>
             <View styles={styles.logicContainer}>
-            <Mutation mutation={ADD_RESTAURANT} onCompleted={this.onSubmit}>
+            <Mutation mutation={ADD_RESTAURANT} onCompleted={() => this.onSubmit()}>
                     {(addRestaurant, { loading, error }) => (
                         <View>
                             <Animated.View style={[styles.submitContainer, {opacity: this.state.anim}]}>
                                 <Button
                                     title="Speichern"
                                     onPress={()=> {
-                                    this.onSubmit()
                                     const dummy = {
                                         ...this._form.getValue(),
                                         coords: "-88.637578, 44.029584"
@@ -89,8 +88,13 @@ export default class AddRestaurantScreen extends React.Component {
                             </Animated.View>
                             <View style={styles.successContainer}>
                                 {loading &&
-                                    <ActivityIndicator size="large" color="#0000ff" />
+                                    <Animated.View style={{ opacity: this.state.anim }}>
+                                        <ActivityIndicator size="large" color="#0000ff" />
+                                    </Animated.View>
                                 }
+                                
+                                    
+                                
                                 {error &&
                                     console.log(error)
                                 }
@@ -112,13 +116,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     display: "flex",
-    justifyContent: 'center',
-    padding: 20,
-  },
-  container: {
-    flex: 7
-  },
-  logicContainer: {
     flex: 2
   },
   submitContainer: {
