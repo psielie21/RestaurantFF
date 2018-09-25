@@ -3,7 +3,7 @@ export default data =
     getNearbyRecommendations: [
         {
             name: "Poinger Einkehr",
-            coordinate: {
+            location: {
                 latitude: 48.176860, 
                 longitude: 11.811108,
             },
@@ -36,7 +36,7 @@ export default data =
         },
         {
             name: "La Piazzeta",
-            coordinate: {
+            location: {
                 latitude: 48.171907,
                 longitude: 11.809618,
             },
@@ -59,7 +59,7 @@ export default data =
         },
         {
             name: "Steakhaus San Salvador",
-            coordinate: {
+            location: {
                 latitude: 48.170912, 
                 longitude: 11.815513,
             },

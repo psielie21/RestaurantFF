@@ -26,8 +26,6 @@ export default class SecondStep extends React.Component {
         this.setState({
             fetching: true,
         })
-        
-
         setTimeout(() => {
             Animated.timing(this.state.anim,
                 {

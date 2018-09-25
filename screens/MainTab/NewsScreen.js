@@ -4,8 +4,8 @@ import { View,
         Button } from "react-native";
 import { createStackNavigator } from "react-navigation";
 
-import Recommendation from "../components/Recommendation";
-import RecommendationDetails from './RecommendationDetails';
+import Recommendation from "../../components/Recommendation";
+import RecommendationDetails from './MapStack/RecommendationDetails';
 
 export default class NewsScreen extends React.Component {
   static navigationOptions = {

@@ -5,13 +5,25 @@ import { createBottomTabNavigator, createStackNavigator } from 'react-navigation
 
 import Colors from '../constants/Colors';
 
-import HomeScreen from '../screens/HomeScreen';
-import MapScreen from '../screens/MapScreen';
-import NewsScreen from '../screens/NewsScreen';
-import CreateScreen from '../screens/CreateScreen';
-import SecondStep from "../screens/SecondStep";
-import RecommendationDetails from "../screens/RecommendationDetails";
-import AddRestaurantScreen from "../screens/AddRestaurantScreen";
+import ProfileScreen from '../screens/MainTab/ProfileStack/ProfileScreen';
+
+import MapScreen from '../screens/MainTab/MapStack/MapScreen';
+import RecommendationDetails from "../screens/MainTab/MapStack/RecommendationDetails";
+
+import NewsScreen from '../screens/MainTab/NewsScreen';
+
+import CreateScreen from '../screens/MainTab/CreateRecommendationStack/CreateRecommendationMainScreen';
+import SecondStep from "../screens/MainTab/CreateRecommendationStack/CreateRecommendationInputScreen";
+import AddRestaurantScreen from "../screens/MainTab/CreateRecommendationStack/AddRestaurantScreen";
+
+const ProfileStack = createStackNavigator({
+  Home: ProfileScreen,
+  },
+  {
+  navigationOptions: () => ({
+    headerMode: "none"
+  })
+  })
 
 const MapStack = createStackNavigator({
   Home: MapScreen,
@@ -25,7 +37,7 @@ const MapStack = createStackNavigator({
 )
 
 
-const AddStack = createStackNavigator({
+const CreateRecommendationStack = createStackNavigator({
   Home: CreateScreen,
   SecondStep: SecondStep,
   AddRest: AddRestaurantScreen,
@@ -40,7 +52,7 @@ const AddStack = createStackNavigator({
 export default createBottomTabNavigator(
   {
     Main: {
-      screen: HomeScreen,
+      screen: ProfileStack,
     },
     Map: {
       screen: MapStack,
@@ -49,7 +61,7 @@ export default createBottomTabNavigator(
       screen: NewsScreen,
     },
     Create: {
-      screen: AddStack
+      screen: CreateRecommendationStack
     },
     
   },

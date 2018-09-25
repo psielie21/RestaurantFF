@@ -1,15 +1,15 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { EvilIcons, MaterialIcons } from "@expo/vector-icons";
-import { Permissions, Location } from "expo";
 
-import { Query, ApolloConsumer, graphql } from "react-apollo";
+import { graphql } from "react-apollo";
 import gql from "graphql-tag";
 
-import Restaurant from "../components/Restaurant";
-import data from "../data";
+import Restaurant from "../../../components/Restaurant";
+import LocationButton from "../../../components/LocationButton";
+import data from "../../../data";
 
-const GET_RESTAURANTS_QUERY = gql`
+const GET_RESTAURANTS_BY_NAME_QUERY = gql`
 query Restaurants($name: String!){
   getRestaurants(name: $name) {
     _id
@@ -21,6 +21,21 @@ query Restaurants($name: String!){
   }
 }
 `;
+
+const GET_RESTAURANTS_BY_LOCATION_QUERY = gql`
+query Restaurants($coords: String!){
+  getRestaurants(coords: $coords) {
+    _id
+    type
+    name
+    adress
+    city
+    zip
+  }
+}
+`;
+
+
      
 
 class CreateScreen extends React.Component {
@@ -37,39 +52,11 @@ class CreateScreen extends React.Component {
       }
     }
 
-    ExchangeRates = () => (
-      <Query
-        query={gql`
-          {
-            getRestaurants(name: "Test") {
-              _id
-              type
-              name
-              adress
-              city
-              zip
-            }
-          }
-        `}
-      >
-        {({ loading, error, data }) => {
-          if (loading) return <Text>Loading...</Text>;
-          if (error) return <Text>Error :(</Text>;
-    
-          return data.getRestaurants.map(({ _id, type }) => (
-            <View>
-              <Text>{`${_id}: ${type}`}</Text>
-            </View>
-          ));
-        }}
-      </Query>
-    );
-
     renderResults(){
       const { navigate } = this.props.navigation
       if(this.props.data.loading){
         return <ActivityIndicator size="large" color="#0000ff" />
-      }else if(!this.props.data.getRestaurants || this.props.data.getRestaurants.length == 0  ){
+      }else if( (!this.props.data.getRestaurants || this.props.data.getRestaurants.length == 0) && this.state.restaurants.length == 0  ){
         return (
           <View style={styles.textContainer}>
             <Text style={styles.infoText}>Suchen sie nach Restaurants oder fügen sie neue in das System ein!</Text>
@@ -78,11 +65,18 @@ class CreateScreen extends React.Component {
             </TouchableOpacity>
           </View>
         )
+      }else if(!this.props.data.getRestaurants){
+        {this.state.restaurants.map((elem, index) => {
+          return(
+            <TouchableOpacity key={elem._id} onPress={() => { navigate("SecondStep", elem) }}>
+              <Restaurant rest={elem}/>
+            </TouchableOpacity>
+          )})
+        }
       }else {
         return (
           <ScrollView>
-            {this.props.data.getRestaurants.map((elem, index) => {
-  
+            {this.props.data.getRestaurants.concat(this.state.restaurants).map((elem, index) => {
               return(
                 <TouchableOpacity key={elem._id} onPress={() => { navigate("SecondStep", elem) }}>
                   <Restaurant rest={elem}/>
@@ -93,22 +87,8 @@ class CreateScreen extends React.Component {
         )
       }
     }
-
-    _fetchByName(name){
-      
-    }
     
-    async _fetchByLocation(){
-      let { status } = await Permissions.askAsync(Permissions.LOCATION);
-      if (status !== 'granted') {
-        this.setState({
-          errorMessage: 'Permission to access location was denied',
-        });
-      }
-  
-      let location = await Location.getCurrentPositionAsync({});
-      Alert.alert(JSON.stringify(location.coords.accuracy))
-    }
+    
 
     render(){
       
@@ -120,15 +100,18 @@ class CreateScreen extends React.Component {
                   style= {styles.input}
                   placeholder="Restaurants suchen..."
                   onChangeText={ text => {
-                    this.setState({ text })
+                    this.setState({ text, restaurants: [] })
                     this.props.data.refetch({ name: text })
                   }}
                 />
-                <TouchableOpacity style={styles.button} onPress={this._fetchByLocation}>
-                    <EvilIcons style={styles.icon}
-                        name="location" size={30}
-                      />                
-                </TouchableOpacity>
+                <LocationButton handleData={(data) =>  {
+                  console.log(data)
+                  this.setState({ restaurants: data.data.getRestaurants });
+                  }} query={ GET_RESTAURANTS_BY_LOCATION_QUERY }>
+                  <EvilIcons style={styles.icon}
+                      name="location" size={30}
+                  />  
+                </LocationButton>
               </View>
 
               <View style={styles.component}>
@@ -143,7 +126,7 @@ class CreateScreen extends React.Component {
     }
 }
 
-export default graphql(GET_RESTAURANTS_QUERY, {
+export default graphql(GET_RESTAURANTS_BY_NAME_QUERY, {
   options: (props) => ({
     variables: {
       name: ""

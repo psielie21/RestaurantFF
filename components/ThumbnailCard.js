@@ -58,7 +58,7 @@ export default class ThumbnailCard extends React.Component {
           </View>
         </TouchableNativeFeedback>
           )
-      }else {
+      }else if( count == 1){
         return(
           <TouchableNativeFeedback onPress={this.props.callback}>
             <View style={styles.card}>
@@ -82,6 +82,21 @@ export default class ThumbnailCard extends React.Component {
             </View>
           </TouchableNativeFeedback>
         )
+      }else {
+        return(
+          <TouchableNativeFeedback onPress={this.props.callback}>
+            <View style={styles.card}>
+              <Text>{this.props.marker.name}</Text>
+              <View style={styles.rec}>
+
+                <View style={styles.textContent}>
+
+                </View>
+              </View>
+            </View>
+          </TouchableNativeFeedback>
+        )
+        
       }
     }
 }

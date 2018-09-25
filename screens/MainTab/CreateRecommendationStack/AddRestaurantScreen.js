@@ -78,7 +78,7 @@ export default class AddRestaurantScreen extends React.Component {
                                     onPress={()=> {
                                     const dummy = {
                                         ...this._form.getValue(),
-                                        coords: "-88.637578, 44.029584"
+                                        coords: "11.8089, 48.1795"
 
                                     }
                                     addRestaurant({ variables:  dummy });

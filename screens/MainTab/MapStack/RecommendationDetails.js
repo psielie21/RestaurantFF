@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
 
-import Recommendation from "../components/Recommendation";
+import Recommendation from "../../../components/Recommendation";
 
 export default class RecommendationDetails extends React.Component {
     static navigationOptions = {

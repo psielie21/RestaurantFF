@@ -5,7 +5,7 @@ import { Mutation } from "react-apollo"
 import gql from "graphql-tag";
 
 
-import { login } from "../actions/user"
+import { login } from "../../actions/user"
 
 const LOGIN = gql`
 mutation Login($emailOrUser: String!, $password: String!) {
