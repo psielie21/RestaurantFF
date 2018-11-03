@@ -173,9 +173,9 @@ export default class LinksScreen extends React.Component {
         
         {this.state.markers.map((marker, index) => {
           const inputRange = [
-            (index - 1) * CARD_WIDTH,
-            index * CARD_WIDTH,
-            ((index + 1) * CARD_WIDTH),
+            (index - 1) * (CARD_WIDTH+20),
+            index * (CARD_WIDTH+20),
+            ((index + 1) * (CARD_WIDTH+20)),
           ];
           const scale = this.animation.interpolate({
             inputRange,
@@ -195,11 +195,12 @@ export default class LinksScreen extends React.Component {
             ],
           };
           return (
-            //<RestaurantMarker keyProp={index} location={marker.location} opacity={opacity} scaleStyle={scaleStyle}/>
-            <MapView.Marker onPress={() => this.scrollView.getNode().scrollTo({x: index * (CARD_WIDTH+20),animated: true}) } coordinate={marker.location} >
-              <View style={{ backgroundColor: "red", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1 }} />
-            </MapView.Marker>
-
+           //<RestaurantMarker keyProp={index} location={marker.location} opacity={opacity} scaleStyle={scaleStyle}/>
+            
+            <MapView.Marker.Animated key={index} style={[ {opacity, height: 10, width: 10 }]} onPress={() => this.scrollView.getNode().scrollTo({x: index * (CARD_WIDTH+20),animated: true}) } coordinate={marker.location} >
+              <Animated.View style={[{ backgroundColor: "red", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1}, scaleStyle ]} />
+            </MapView.Marker.Animated>
+            
           );
         })}
         </MapView>
@@ -276,6 +277,8 @@ export default class LinksScreen extends React.Component {
                           longitudeDelta: REGION_DELTAS.longitudeDelta,
                         },
                         350);
+                        //so apparently the longitudeDelta covers half of the screen as we wish
+                        //BUT the latitudeDelta covers the whole screen -> we need to divide by two
                       refetch({ coords: this.currRegion.longitude + ", " + this.currRegion.latitude, 
                             lat1: (this.currRegion.latitude - REGION_DELTAS.latitudeDelta/2),
                             lon1: (this.currRegion.longitude - REGION_DELTAS.longitudeDelta),
@@ -312,11 +315,6 @@ export default class LinksScreen extends React.Component {
                                           ]
                             }));
                     }
-
-                    
-                    
-                    
-                    
                     }   
                     } > 
                     <Entypo name={"magnifying-glass"} size={35} style={styles.icon}/>

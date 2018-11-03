@@ -10,18 +10,21 @@ import { setContext } from 'apollo-link-context';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloLink } from 'apollo-link';
 import { onError } from 'apollo-link-error';
+import { createUploadLink } from 'apollo-upload-client'
+
 
 import { createStore } from "redux";
 import { Provider } from "react-redux";
 
-
 import rootReducer from "./reducers/user"
 import RootNavigation from "./navigation/RootNavigation"
 
+import connections from "./constants/Connection";
 
 
-const httpLink = createHttpLink({
-  uri: 'https://restaurant-ff-server-psielie.c9users.io/graphql',
+
+const httpLink = createUploadLink({
+  uri: connections.graphql,
 });
 
 const authLink = setContext( async(_, { headers }) => {
@@ -47,7 +50,8 @@ const client = new ApolloClient({
         );
       if (networkError) console.log(`[Network error]: ${networkError}`);
     }),
-    authLink.concat(httpLink),
+    authLink,
+    httpLink,
   ]),
   cache: new InMemoryCache()
 });
