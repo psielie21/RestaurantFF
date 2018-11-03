@@ -16,9 +16,11 @@ import gql from "graphql-tag";
 
 import { Entypo } from "@expo/vector-icons";
 
-import  data  from "../../../data";
-import Card from "../../../components/ThumbnailCard";
-import RestaurantMarker from "../../../components/RestaurantMarker";
+import data  from "../../../data";
+import MapConstants from "../../../constants/Map";
+import LayoutConstants from "../../../constants/Layout";
+import RestaurantScrollView from "../../../components/MapComponents/RestaurantScrollView"
+import RestaurantMarker from "../../../components/MapComponents/RestaurantMarker";
 
 
 const GET_NEARBY_RESTAURANTS = gql`
@@ -57,17 +59,6 @@ const GET_NEARBY_RESTAURANTS = gql`
     }
   }
 `
-
-const { width, height } = Dimensions.get("window");
-
-const CARD_HEIGHT = height / 5;
-const CARD_WIDTH = CARD_HEIGHT + 50;
-
-const REGION_DELTAS = {
-  latitudeDelta: 0.01864195044303443,
-  longitudeDelta: 0.010142817690068,
-}
-
 export default class LinksScreen extends React.Component {
   constructor(props, context){
     super(props, context);
@@ -77,9 +68,10 @@ export default class LinksScreen extends React.Component {
       region: {
         latitude: 45.52220671242907,
         longitude: -122.6653281029795,
-        latitudeDelta: 0.01864195044303443,
-        longitudeDelta: 0.010142817690068,
+        latitudeDelta: MapConstants.REGION_DELTAS.latitudeDelta,
+        longitudeDelta: MapConstants.REGION_DELTAS.longitudeDelta,
       },
+      index : 0,
     };
 
     this.currRegion = {
@@ -97,35 +89,12 @@ export default class LinksScreen extends React.Component {
     this.animation = new Animated.Value(0.01);
   }
 
-  componentDidMount() {
-    // We should detect when scrolling has stopped then animate
-    // We should just debounce the event listener here
-    this.animation.addListener(({ value }) => {
-      //console.log(value);
-      let index = Math.floor(value / CARD_WIDTH + 0.3); // animate 30% away from landing on the next item
-      if (index >= this.state.markers.length) {
-        index = this.state.markers.length - 1;
-      }
-      if (index <= 0) {
-        index = 0;
-      }
+  handleIndexChange(index) {
+    this.setState({ index })
+  }
 
-      clearTimeout(this.regionTimeout);
-      this.regionTimeout = setTimeout(() => {
-        if (this.index !== index) {
-          this.index = index;
-          const { location } = this.state.markers[index];
-          this.map.animateToRegion(
-            {
-              ...location,
-              latitudeDelta: REGION_DELTAS.latitudeDelta,
-              longitudeDelta: REGION_DELTAS.longitudeDelta,
-            },
-            350
-          );
-        }
-      }, 10);
-    });
+  moveRegions(mapsObj){
+    this.map.animateToRegion(mapsObj)
   }
 
   async _searchNearby(data){
@@ -169,13 +138,13 @@ export default class LinksScreen extends React.Component {
             <View style={{ backgroundColor: "blue", height: 5, width: 5, borderRadius: 12,  borderWidth: 1 }} />
           </MapView.Marker>
         }
-        
-        
+
+
         {this.state.markers.map((marker, index) => {
           const inputRange = [
-            (index - 1) * (CARD_WIDTH+20),
-            index * (CARD_WIDTH+20),
-            ((index + 1) * (CARD_WIDTH+20)),
+            (index - 1) * LayoutConstants.CARD_WIDTH,
+            index * LayoutConstants.CARD_WIDTH,
+            ((index + 1) * LayoutConstants.CARD_WIDTH),
           ];
           const scale = this.animation.interpolate({
             inputRange,
@@ -195,43 +164,25 @@ export default class LinksScreen extends React.Component {
             ],
           };
           return (
-           //<RestaurantMarker keyProp={index} location={marker.location} opacity={opacity} scaleStyle={scaleStyle}/>
-            
-            <MapView.Marker.Animated key={index} style={[ {opacity, height: 10, width: 10 }]} onPress={() => this.scrollView.getNode().scrollTo({x: index * (CARD_WIDTH+20),animated: true}) } coordinate={marker.location} >
-              <Animated.View style={[{ backgroundColor: "red", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1}, scaleStyle ]} />
-            </MapView.Marker.Animated>
-            
+            //<RestaurantMarker keyProp={index} location={marker.location} opacity={opacity} scaleStyle={scaleStyle}/>
+            <MapView.Marker onPress={() => this.restaurantScrollView.scrollTo(index * (CARD_WIDTH+20))} coordinate={marker.location} active={false}>
+              {this.state.index == index &&
+                <View style={{ backgroundColor: "blue", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1 }} />
+              }
+              {this.state.index != index &&
+                <View style={{ backgroundColor: "red", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1 }} />
+              }
+            </MapView.Marker>
           );
         })}
         </MapView>
-        <Animated.ScrollView
-            ref={ref => this.scrollView = ref}
-            horizontal
-            scrollEventThrottle={1}
-            showsHorizontalScrollIndicator={true}
-            snapToInterval={CARD_WIDTH+20}
-            pagingEnabled={true}
-            onScroll={Animated.event(
-              [
-                {
-                  nativeEvent: {
-                    contentOffset: {
-                      x: this.animation
-                    },
-                  },
-                },
-              ],
-              { useNativeDriver: true },
-            )}
-            style={styles.scrollView}
-            contentContainerStyle={styles.endPadding}
-          >
-              {this.state.markers.map((marker, index) => (
-                <Card marker={marker} key={marker._id} count={marker.recommendations.length} callback={() => navigate("Details", marker)}/>
-              ))  
-            }
-          </Animated.ScrollView>
 
+          <RestaurantScrollView markers={this.state.markers}
+                                onRef={(ref) => { this.restaurantScrollView = ref }}
+                                navigate={navigate}
+                                animateToRegion={this.moveRegions.bind(this)}
+                                handleIndexChange={this.handleIndexChange.bind(this)}
+                                animation={this.animation}/>
 
           <View style={styles.button}>
             <View>
@@ -252,10 +203,9 @@ export default class LinksScreen extends React.Component {
                   350
                 );
                 }}>
-                <Entypo name={"compass"} size={35} style={styles.icon}/>     
+                <Entypo name={"compass"} size={35} style={styles.icon}/>
               </TouchableNativeFeedback>
             </View>
-
             <Query query={GET_NEARBY_RESTAURANTS } onCompleted={ (data) => this._searchNearby(data)}>
               {({ loading, error, data, refetch, networkStatus}) => (
                 <View>
@@ -268,55 +218,35 @@ export default class LinksScreen extends React.Component {
                     }));
                     //this checks if the screen is broader than we like it to be
                     //instead of querying too much data we zoom in a little bit
-                    if(this.currRegion.latitudeDelta > REGION_DELTAS.latitudeDelta || this.currRegion.longitudeDelta > REGION_DELTAS.longitudeDelta){
+                    if(this.currRegion.latitudeDelta > MapConstants.REGION_DELTAS.latitudeDelta || this.currRegion.longitudeDelta > MapConstants.REGION_DELTAS.longitudeDelta){
                       this.map.animateToRegion(
                         {
                           latitude: this.currRegion.latitude,
                           longitude: this.currRegion.longitude,
-                          latitudeDelta: REGION_DELTAS.latitudeDelta,
-                          longitudeDelta: REGION_DELTAS.longitudeDelta,
+                          latitudeDelta: MapConstants.REGION_DELTAS.latitudeDelta,
+                          longitudeDelta: MapConstants.REGION_DELTAS.longitudeDelta,
                         },
                         350);
-                        //so apparently the longitudeDelta covers half of the screen as we wish
-                        //BUT the latitudeDelta covers the whole screen -> we need to divide by two
-                      refetch({ coords: this.currRegion.longitude + ", " + this.currRegion.latitude, 
-                            lat1: (this.currRegion.latitude - REGION_DELTAS.latitudeDelta/2),
-                            lon1: (this.currRegion.longitude - REGION_DELTAS.longitudeDelta),
-                            lat2: (this.currRegion.latitude + REGION_DELTAS.latitudeDelta/2),
-                            lon2: (this.currRegion.longitude + REGION_DELTAS.longitudeDelta),
+                      }
+                      refetch({ coords: this.currRegion.longitude + ", " + this.currRegion.latitude,
+                            lat1: (this.currRegion.latitude - MapConstants.REGION_DELTAS.latitudeDelta/2),
+                            lon1: (this.currRegion.longitude - MapConstants.REGION_DELTAS.longitudeDelta),
+                            lat2: (this.currRegion.latitude + MapConstants.REGION_DELTAS.latitudeDelta/2),
+                            lon2: (this.currRegion.longitude + MapConstants.REGION_DELTAS.longitudeDelta),
                           });
                       this.setState(() => ({
-                            testPolygon: [{latitude: this.currRegion.latitude - REGION_DELTAS.latitudeDelta/2, 
-                                          longitude: this.currRegion.longitude - REGION_DELTAS.longitudeDelta,},
-                                          {latitude: this.currRegion.latitude - REGION_DELTAS.latitudeDelta/2, 
-                                          longitude: this.currRegion.longitude + REGION_DELTAS.longitudeDelta,},
-                                          {latitude: this.currRegion.latitude + REGION_DELTAS.latitudeDelta/2, 
-                                          longitude: this.currRegion.longitude + REGION_DELTAS.longitudeDelta,},
-                                          {latitude: this.currRegion.latitude + REGION_DELTAS.latitudeDelta/2, 
-                                          longitude: this.currRegion.longitude - REGION_DELTAS.longitudeDelta,},  
+                            testPolygon: [{latitude: this.currRegion.latitude - MapConstants.REGION_DELTAS.latitudeDelta/2,
+                                          longitude: this.currRegion.longitude - MapConstants.REGION_DELTAS.longitudeDelta,},
+                                          {latitude: this.currRegion.latitude - MapConstants.REGION_DELTAS.latitudeDelta/2,
+                                          longitude: this.currRegion.longitude + MapConstants.REGION_DELTAS.longitudeDelta,},
+                                          {latitude: this.currRegion.latitude + MapConstants.REGION_DELTAS.latitudeDelta/2,
+                                          longitude: this.currRegion.longitude + MapConstants.REGION_DELTAS.longitudeDelta,},
+                                          {latitude: this.currRegion.latitude + MapConstants.REGION_DELTAS.latitudeDelta/2,
+                                          longitude: this.currRegion.longitude - MapConstants.REGION_DELTAS.longitudeDelta,},
                                         ]
                           }));
-                    }else {
-                      refetch({ coords: this.currRegion.longitude + ", " + this.currRegion.latitude, 
-                              lat1: (this.currRegion.latitude - this.currRegion.latitudeDelta/2),
-                              lon1: (this.currRegion.longitude - this.currRegion.longitudeDelta),
-                              lat2: (this.currRegion.latitude + this.currRegion.latitudeDelta/2),
-                              lon2: (this.currRegion.longitude + this.currRegion.longitudeDelta),
-                            });
-                      this.setState(() => ({
-                              testPolygon: [{latitude: this.currRegion.latitude - this.currRegion.latitudeDelta/2, 
-                                            longitude: this.currRegion.longitude - this.currRegion.longitudeDelta,},
-                                            {latitude: this.currRegion.latitude - this.currRegion.latitudeDelta/2, 
-                                            longitude: this.currRegion.longitude + this.currRegion.longitudeDelta,},
-                                            {latitude: this.currRegion.latitude + this.currRegion.latitudeDelta/2, 
-                                            longitude: this.currRegion.longitude + this.currRegion.longitudeDelta,},
-                                            {latitude: this.currRegion.latitude + this.currRegion.latitudeDelta/2, 
-                                            longitude: this.currRegion.longitude - this.currRegion.longitudeDelta,},  
-                                          ]
-                            }));
-                    }
-                    }   
-                    } > 
+                        }
+                    } >
                     <Entypo name={"magnifying-glass"} size={35} style={styles.icon}/>
                   </TouchableNativeFeedback>
                   {loading&&
@@ -334,30 +264,6 @@ export default class LinksScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  scrollView: {
-    position: "absolute",
-    bottom: 30,
-    left: 0,
-    right: 0,
-    paddingVertical: 10,
-  },
-  endPadding: {
-    paddingRight: width - CARD_WIDTH - 20,
-  },
-  card: {
-    padding: 10,
-    elevation: 2,
-    backgroundColor: "#FFF",
-    marginHorizontal: 10,
-    shadowColor: "#000",
-    shadowRadius: 5,
-    shadowOpacity: 0.3,
-    shadowOffset: { x: 2, y: -2 },
-    height: CARD_HEIGHT,
-    width: CARD_WIDTH,
-    overflow: "hidden",
-
   },
   rec: {
     display: "flex",
@@ -386,11 +292,11 @@ const styles = StyleSheet.create({
     color: "#444",
   },
   testTry: {
-    backgroundColor: "black", 
-    height: 20, 
+    backgroundColor: "black",
+    height: 20,
     width: 20,
     borderRadius: 12,
-      
+
   },
   markerWrap: {
     alignItems: "center",
@@ -413,7 +319,7 @@ const styles = StyleSheet.create({
     },
     button: {
       position: "absolute",
-      bottom: 30 + CARD_HEIGHT + 30,
+      bottom: 30 + LayoutConstants.CARD_HEIGHT + 30,
       right: 30,
       borderRadius: 100,
       display: "flex",

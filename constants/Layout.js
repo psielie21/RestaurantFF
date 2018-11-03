@@ -8,5 +8,6 @@ export default {
     width,
     height,
   },
-  isSmallDevice: width < 375,
+  CARD_HEIGHT: height / 5,
+  CARD_WIDTH: height/5 + 50,
 };
