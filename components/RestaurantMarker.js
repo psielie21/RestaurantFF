@@ -3,12 +3,11 @@ import { MapView } from "expo";
 import { Animated, View, StyleSheet } from "react-native";
 
 
-const RestaurantMarker = ({ keyProp, location, opacity, scaleStyle }) => {
-    
+const RestaurantMarker = ({ keyProp, location, opacity, scaleStyle }) => {    
     return (
-        <MapView.Marker.Animated key={keyProp} coordinate={location} style={{opacity, ...styles.markerContainer}}>
+        <MapView.Marker.Animated key={keyProp} coordinate={location} style={[ {opacity}, styles.markerContainer]}>
           <Animated.View style={[styles.markerRing, scaleStyle]}>
-                <View style={styles.markerCenter}/>
+          <View style={styles.markerCenter} />
             </Animated.View >
         </MapView.Marker.Animated>
       );

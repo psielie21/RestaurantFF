@@ -27,7 +27,8 @@ const ProfileStack = createStackNavigator({
 
 const MapStack = createStackNavigator({
   Home: MapScreen,
-  Details: RecommendationDetails
+  Details: RecommendationDetails,
+  CreateRecommendation: SecondStep,
   },
   {
     navigationOptions: () => ({

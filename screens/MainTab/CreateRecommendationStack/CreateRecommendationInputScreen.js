@@ -1,47 +1,41 @@
 import React from "react";
 import { View, Text, StyleSheet, TextInput, Animated, TouchableOpacity, Button, ActivityIndicator} from "react-native";
+import { ApolloConsumer, ApolloProvider } from 'react-apollo';
+import gql from "graphql-tag";
 
 import { MaterialIcons } from "@expo/vector-icons";
 
+const CREATE_RECOMMENDATION = gql`
+  mutation CreateRecommendation($restaurant: ID, $body: String, $pictures: [String], $restName: String, $latitude: Float, $longitude: Float){
+    createRecommendation(restaurant: $restaurant, body: $body, pictures: $pictures, restName: $restName, latitude: $latitude, longitude: $longitude){
+        _id
+    }
+  }
+`
 
 export default class SecondStep extends React.Component {
     static navigationOptions = {
         title: 'Details',
       };
 
-    
-    
-
     constructor(props){
         super(props);
         this.state = {
             stars: 1,  
             anim: new Animated.Value(1),
-            fetching: false
+            fetching: false,
+            body: "",
         }
-        
     }
 
-    onSubmit(){
-        this.setState({
-            fetching: true,
-        })
-        setTimeout(() => {
-            Animated.timing(this.state.anim,
-                {
-                    toValue: 0,
-                    duration: 500
-                }
-            ).start();
-            this.setState({
-                fetching: false
-            })
-        }, 2500)
-    }
 
     render(){
         const { navigation } = this.props; 
         const name = navigation.getParam('name', 'ERROR');
+        const _id = navigation.getParam('_id', 'ERROR');
+        const latitude = navigation.getParam('latitude', 'ERROR');
+        const longitude = navigation.getParam('longitude', 'ERROR');
+
         const neg = Animated.add(1, Animated.multiply(-1, this.state.anim))
 
 
@@ -50,6 +44,9 @@ export default class SecondStep extends React.Component {
             <Text style={styles.title}>{name}</Text>
             <View style={styles.textboxContainer}>
                 <TextInput
+                ref= {(el) => { this.body = el; }}
+                onChangeText={(body) => this.setState({body})}
+                value={this.state.body}
                 multiline 
                 style={styles.textbox}
                 placeholder={"Bewertung.."}
@@ -95,18 +92,51 @@ export default class SecondStep extends React.Component {
                 </TouchableOpacity>
             </View>
 
-            <Animated.View style={[styles.submitContainer, {opacity: this.state.anim}]}>
-                <Button title="Speichern" onPress = { () => this.onSubmit()}/>
-            </Animated.View>
+            <ApolloConsumer>
+                {client => (
+                    <View>
+                        <Animated.View style={[styles.submitContainer, {opacity: this.state.anim}]}>
+                            <Button title="Speichern" onPress = { async() => {
+                                this.setState({
+                                    fetching: true,
+                                });
+                                console.log(latitude);
+                                console.log(name);
+                                console.log(_id);
+                                console.log(this.state.body);
+                                console.log(longitude);
 
-            <View style={styles.successContainer}>
-                {this.state.fetching &&
-                    <ActivityIndicator size="large" color="#0000ff" />
+                                const { data } = await client.mutate({
+                                    mutation: CREATE_RECOMMENDATION,
+                                    variables: { restaurant: _id, restName: name, body: this.state.body, latitude, longitude }
+                                })
+                                Animated.timing(this.state.anim,
+                                    {
+                                        toValue: 0,
+                                        duration: 350
+                                    }
+                                ).start();
+                                this.setState({
+                                    fetching: false
+                                })
+                            } }/>
+                        </Animated.View>
+            
+                        <View style={styles.successContainer}>
+                            {this.state.fetching &&
+                                <ActivityIndicator size="large" color="#0000ff" />
+                            }
+                            <Animated.View style={[styles.check, {opacity: neg}]}>
+                                <MaterialIcons name={"check"} size={30} />
+                            </Animated.View>
+                        </View>
+                    </View>
+                    
+                    )
                 }
-                <Animated.View style={[styles.check, {opacity: neg}]}>
-                    <MaterialIcons name={"check"} size={30} />
-                </Animated.View>
-            </View>
+            </ApolloConsumer>
+
+            
 
                 
           </View>

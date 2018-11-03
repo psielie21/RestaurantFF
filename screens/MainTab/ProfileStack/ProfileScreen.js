@@ -14,11 +14,13 @@ import {
   Modal,
   TouchableHighlight
 } from 'react-native';
-import { Query } from "react-apollo"
+import { Query, Mutation } from "react-apollo"
 import gql from "graphql-tag";
-import { ImagePicker, Permissions } from "expo";
+import { ImagePicker, Permissions, FileSystem } from "expo";
+import { ReactNativeFile } from 'apollo-upload-client'
 
 import { logout } from "../../../actions/user"
+import connections from "../../../constants/Connection";
 
 const ME_QUERY = gql`
   query {
@@ -32,7 +34,15 @@ const ME_QUERY = gql`
       avatar
     }
   }
-`
+`;
+
+const UPDATE_PROFILE_PICTURE = gql`
+mutation UpdateProfilePicture($profilePicture: Upload) {
+  updateMe(profilePicture: $profilePicture) {
+    avatar
+  }
+}
+`;
 
 const { width, height } = Dimensions.get("window");
 
@@ -79,6 +89,9 @@ class HomeScreen extends React.Component {
       this.setState({
         imgUri: result.uri
       })
+
+      return result.uri;
+      //let pic = await FileSystem.readAsStringAsync(result.uri)
     }
   }
 
@@ -94,28 +107,38 @@ class HomeScreen extends React.Component {
           {
             ({ loading, data, error }) => {
               if(loading){
-                return <Text>Loading....</Text>
+                return <View><Text>Loading....</Text></View>
               }
               if(error){
-                return <Text>Error</Text>
+                return <View><Text>Error</Text></View>
               }
 
               return (
                 <View>
                   <View style={styles.imgContainer}>
-                    <TouchableOpacity onPress={this._pickImage} >
-                      <View style={styles.imgWrapper} >
-                        {!data.me.avatar &&
-                          <Image style={styles.img} source={{uri: this.state.imgUri}}/>
-                        }
-                        {data.me.avatar &&
-                          <Image style={styles.img} source={{uri: data.me.avatar}}/>
-                        }
-                        
-                      </View>
-                    </TouchableOpacity>
+                    <Mutation mutation={UPDATE_PROFILE_PICTURE} onCompleted={(data) => console.log(data)}>
+                      {updatePicture => (
+                        <TouchableOpacity onPress={async() => {
+                          const uri = await this._pickImage();
+                          const file = new ReactNativeFile({
+                            uri: uri,
+                            name: 'a.jpg',
+                            type: 'image/jpeg'
+                          })
+                          updatePicture({ variables: {profilePicture: file} }) 
+                        }} >
+                          <View style={styles.imgWrapper} >
+                            {data.me.avatar &&
+                              <View>
+                                <Image style={styles.img} source={{uri: "" + connections.baseUrl + data.me.avatar}}/>
+                              </View>
+                            }
+                          </View>
+                        </TouchableOpacity>
+                        ) 
+                      }
+                    </Mutation>
                   </View>
-                  
                   <View style={styles.table}>
                     <View styles={styles.row}><Text style={styles.wrapperText}><Text style={styles.firstCol}>Email: </Text><Text style={styles.email}>{data.me.email}</Text></Text></View>
                     <View styles={styles.row}><Text style={styles.wrapperText}><Text style={styles.firstCol}>Benutzername: </Text><Text style={styles.username}>{data.me.username}</Text></Text></View>

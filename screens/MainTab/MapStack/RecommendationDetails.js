@@ -1,5 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+
 
 import Recommendation from "../../../components/Recommendation";
 
@@ -50,14 +52,23 @@ export default class RecommendationDetails extends React.Component {
         const zip = navigation.getParam("zip", "ERROR");
         const city = navigation.getParam("city", "ERROR");
         const recommendations = navigation.getParam("recommendations", "ERROR");
+
+        const _id = navigation.getParam("_id", "ERROR");
+        const location = navigation.getParam("location", "ERROR");
+        const { longitude, latitude } = location;
         //const otherParam = navigation.getParam('otherParam', 'some default value');
 
-
+        const navigate = this.props.navigation.navigate;
         return (
             <View style={styles.Component}> 
                 <Text style={styles.Title}>{name}</Text>
                 <View style={styles.Details}>
                     <Text>{adress} {zip} {city}</Text>
+                </View>
+                <View style={styles.addButtonContainer}>
+                    <TouchableOpacity onPress={() => navigate("CreateRecommendation", {name, _id, latitude, longitude})}>
+                        <MaterialIcons name="add" size={40}/>
+                    </TouchableOpacity>
                 </View>
                 <View style={{flex: 1}}> 
                 <FlatList
@@ -92,7 +103,13 @@ const styles = StyleSheet.create({
     Component:{
         flex:1,
         display: "flex",
-        },
+    },
+    addButtonContainer: {
+        height: 100,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
     Text : {
         color: "blue",
         fontSize: 20,
