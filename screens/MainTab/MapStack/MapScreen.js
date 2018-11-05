@@ -5,60 +5,21 @@ import {
   Text,
   View,
   Animated,
-  ActivityIndicator,
   Dimensions,
   TouchableNativeFeedback
 } from "react-native";
 
-import { MapView, Permissions, Location } from 'expo';
-import { Query } from "react-apollo";
-import gql from "graphql-tag";
-
 import { Entypo } from "@expo/vector-icons";
+import { MapView, Permissions, Location } from 'expo';
 
 import data  from "../../../data";
 import MapConstants from "../../../constants/Map";
 import LayoutConstants from "../../../constants/Layout";
 import RestaurantScrollView from "../../../components/MapComponents/RestaurantScrollView"
 import RestaurantMarker from "../../../components/MapComponents/RestaurantMarker";
+import RestaurantFetchButton from "../../../components/MapComponents/RestaurantFetchButton"
 
 
-const GET_NEARBY_RESTAURANTS = gql`
-  query GetNearbyRestaurants($coords: String, $distance: Float, $lat1: Float, $lon1: Float, $lat2: Float, $lon2: Float){
-    getBoxBasedRestaurants(lat1: $lat1, lon1: $lon1, lat2: $lat2, lon2: $lon2){
-      name
-      _id
-      recommendations {
-        _id
-      }
-      location {
-        latitude
-        longitude
-      }
-    }
-    getNearbyRecommendations(coords: $coords, distance: $distance){
-      name
-      _id
-      location {
-        latitude
-        longitude
-      }
-      adress
-      city
-      zip
-      recommendations {
-        body
-        createdAt
-        rating
-        author {
-          firstName
-          lastName
-          avatar
-        }
-      }
-    }
-  }
-`
 export default class LinksScreen extends React.Component {
   constructor(props, context){
     super(props, context);
@@ -91,6 +52,57 @@ export default class LinksScreen extends React.Component {
 
   handleIndexChange(index) {
     this.setState({ index })
+  }
+
+  handleScreenConstraints(){
+    //this checks if the screen is broader than we like it to be
+    //instead of querying too much data we zoom in a little bit
+    if(this.currRegion.latitudeDelta > 2*MapConstants.REGION_DELTAS.latitudeDelta || this.currRegion.longitudeDelta > 2*MapConstants.REGION_DELTAS.longitudeDelta){
+      this.map.animateToRegion(
+        {
+          latitude: this.currRegion.latitude,
+          longitude: this.currRegion.longitude,
+          latitudeDelta: MapConstants.REGION_DELTAS.latitudeDelta,
+          longitudeDelta: MapConstants.REGION_DELTAS.longitudeDelta,
+        },
+        350);
+      }
+  }
+
+  startFetchResults(){
+    this.setState({ fetching: true })
+  }
+
+  endFetchResults(){
+    this.setState({  fetching: false })
+  }
+
+  getCurrentPositionAndCenter(){
+    this.setState({ centerPos: {
+                        latitude: this.currRegion.latitude,
+                        longitude: this.currRegion.longitude,
+                      } })
+    return {
+      coords: this.currRegion.longitude + ", " + this.currRegion.latitude,
+      lat1: (this.currRegion.latitude - this.currRegion.latitudeDelta/2),
+      lon1: (this.currRegion.longitude - this.currRegion.longitudeDelta/2),
+      lat2: (this.currRegion.latitude + this.currRegion.latitudeDelta/2),
+      lon2: (this.currRegion.longitude + this.currRegion.longitudeDelta/2),
+    }
+  }
+
+  setPolygonForDebug(){
+    this.setState(() => ({
+          testPolygon: [{latitude: this.currRegion.latitude - this.currRegion.latitudeDelta/2,
+                        longitude: this.currRegion.longitude - this.currRegion.longitudeDelta/2,},
+                        {latitude: this.currRegion.latitude - this.currRegion.latitudeDelta/2,
+                        longitude: this.currRegion.longitude + this.currRegion.longitudeDelta/2,},
+                        {latitude: this.currRegion.latitude + this.currRegion.latitudeDelta/2,
+                        longitude: this.currRegion.longitude + this.currRegion.longitudeDelta/2,},
+                        {latitude: this.currRegion.latitude + this.currRegion.latitudeDelta/2,
+                        longitude: this.currRegion.longitude - this.currRegion.longitudeDelta/2,},
+                      ]
+        }));
   }
 
   moveRegions(mapsObj){
@@ -159,13 +171,13 @@ export default class LinksScreen extends React.Component {
           const scaleStyle = {
             transform: [
               {
-                scale: scale,
+                scale
               },
             ],
           };
           return (
             //<RestaurantMarker keyProp={index} location={marker.location} opacity={opacity} scaleStyle={scaleStyle}/>
-            <MapView.Marker onPress={() => this.restaurantScrollView.scrollTo(index * (CARD_WIDTH+20))} coordinate={marker.location} active={false}>
+            <MapView.Marker key={index} onPress={() => this.restaurantScrollView.scrollTo(index * (LayoutConstants.CARD_WIDTH+20))} coordinate={marker.location}>
               {this.state.index == index &&
                 <View style={{ backgroundColor: "blue", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1 }} />
               }
@@ -174,6 +186,7 @@ export default class LinksScreen extends React.Component {
               }
             </MapView.Marker>
           );
+
         })}
         </MapView>
 
@@ -206,55 +219,13 @@ export default class LinksScreen extends React.Component {
                 <Entypo name={"compass"} size={35} style={styles.icon}/>
               </TouchableNativeFeedback>
             </View>
-            <Query query={GET_NEARBY_RESTAURANTS } onCompleted={ (data) => this._searchNearby(data)}>
-              {({ loading, error, data, refetch, networkStatus}) => (
-                <View>
-                  <TouchableNativeFeedback onPress={() => {
-                    this.setState(() => ({
-                      centerPos: {
-                        latitude: this.currRegion.latitude,
-                        longitude: this.currRegion.longitude,
-                      }
-                    }));
-                    //this checks if the screen is broader than we like it to be
-                    //instead of querying too much data we zoom in a little bit
-                    if(this.currRegion.latitudeDelta > MapConstants.REGION_DELTAS.latitudeDelta || this.currRegion.longitudeDelta > MapConstants.REGION_DELTAS.longitudeDelta){
-                      this.map.animateToRegion(
-                        {
-                          latitude: this.currRegion.latitude,
-                          longitude: this.currRegion.longitude,
-                          latitudeDelta: MapConstants.REGION_DELTAS.latitudeDelta,
-                          longitudeDelta: MapConstants.REGION_DELTAS.longitudeDelta,
-                        },
-                        350);
-                      }
-                      refetch({ coords: this.currRegion.longitude + ", " + this.currRegion.latitude,
-                            lat1: (this.currRegion.latitude - MapConstants.REGION_DELTAS.latitudeDelta/2),
-                            lon1: (this.currRegion.longitude - MapConstants.REGION_DELTAS.longitudeDelta),
-                            lat2: (this.currRegion.latitude + MapConstants.REGION_DELTAS.latitudeDelta/2),
-                            lon2: (this.currRegion.longitude + MapConstants.REGION_DELTAS.longitudeDelta),
-                          });
-                      this.setState(() => ({
-                            testPolygon: [{latitude: this.currRegion.latitude - MapConstants.REGION_DELTAS.latitudeDelta/2,
-                                          longitude: this.currRegion.longitude - MapConstants.REGION_DELTAS.longitudeDelta,},
-                                          {latitude: this.currRegion.latitude - MapConstants.REGION_DELTAS.latitudeDelta/2,
-                                          longitude: this.currRegion.longitude + MapConstants.REGION_DELTAS.longitudeDelta,},
-                                          {latitude: this.currRegion.latitude + MapConstants.REGION_DELTAS.latitudeDelta/2,
-                                          longitude: this.currRegion.longitude + MapConstants.REGION_DELTAS.longitudeDelta,},
-                                          {latitude: this.currRegion.latitude + MapConstants.REGION_DELTAS.latitudeDelta/2,
-                                          longitude: this.currRegion.longitude - MapConstants.REGION_DELTAS.longitudeDelta,},
-                                        ]
-                          }));
-                        }
-                    } >
-                    <Entypo name={"magnifying-glass"} size={35} style={styles.icon}/>
-                  </TouchableNativeFeedback>
-                  {loading&&
-                    <ActivityIndicator size="large" color="#0000ff" />
-                  }
-                </View>
-              )}
-            </Query>
+
+            <RestaurantFetchButton onStartFetchingResults={this.startFetchResults.bind(this)}
+                                  onEndFetchingResults={this.endFetchResults.bind(this)}
+                                  handleScreenConstraints={this.handleScreenConstraints.bind(this)}
+                                  getArgumentsForQuery={this.getCurrentPositionAndCenter.bind(this)}
+                                  onCompletedFetching={this._searchNearby.bind(this)}
+                                  fetching={this.state.fetching}/>
           </View>
         </View>
     );
@@ -317,19 +288,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(130,4,150, 0.5)",
     },
-    button: {
-      position: "absolute",
-      bottom: 30 + LayoutConstants.CARD_HEIGHT + 30,
-      right: 30,
-      borderRadius: 100,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "#3b4187",
-      elevation: 5
-    },
-    icon: {
-      padding: 7,
-      color: "#FFF5EE"
-    }
+  button: {
+    position: "absolute",
+    bottom: 30 + LayoutConstants.CARD_HEIGHT + 30,
+    right: 30,
+    borderRadius: 100,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#3b4187",
+    elevation: 5
+  },
+  icon: {
+    padding: 7,
+    color: "#FFF5EE"
+  }
 });

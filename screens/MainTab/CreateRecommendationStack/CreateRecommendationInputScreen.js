@@ -1,17 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, TextInput, Animated, TouchableOpacity, Button, ActivityIndicator} from "react-native";
-import { ApolloConsumer, ApolloProvider } from 'react-apollo';
-import gql from "graphql-tag";
 
 import { MaterialIcons } from "@expo/vector-icons";
 
-const CREATE_RECOMMENDATION = gql`
-  mutation CreateRecommendation($restaurant: ID, $body: String, $pictures: [String], $restName: String, $latitude: Float, $longitude: Float){
-    createRecommendation(restaurant: $restaurant, body: $body, pictures: $pictures, restName: $restName, latitude: $latitude, longitude: $longitude){
-        _id
-    }
-  }
-`
 
 export default class SecondStep extends React.Component {
     static navigationOptions = {
@@ -21,21 +12,32 @@ export default class SecondStep extends React.Component {
     constructor(props){
         super(props);
         this.state = {
-            stars: 1,  
+            stars: 1,
             anim: new Animated.Value(1),
-            fetching: false,
-            body: "",
+            fetching: false
         }
     }
 
+    onSubmit(){
+        this.setState({
+            fetching: true,
+        })
+        setTimeout(() => {
+            Animated.timing(this.state.anim,
+                {
+                    toValue: 0,
+                    duration: 500
+                }
+            ).start();
+            this.setState({
+                fetching: false
+            })
+        }, 2500)
+    }
 
     render(){
-        const { navigation } = this.props; 
+        const { navigation } = this.props;
         const name = navigation.getParam('name', 'ERROR');
-        const _id = navigation.getParam('_id', 'ERROR');
-        const latitude = navigation.getParam('latitude', 'ERROR');
-        const longitude = navigation.getParam('longitude', 'ERROR');
-
         const neg = Animated.add(1, Animated.multiply(-1, this.state.anim))
 
 
@@ -44,10 +46,7 @@ export default class SecondStep extends React.Component {
             <Text style={styles.title}>{name}</Text>
             <View style={styles.textboxContainer}>
                 <TextInput
-                ref= {(el) => { this.body = el; }}
-                onChangeText={(body) => this.setState({body})}
-                value={this.state.body}
-                multiline 
+                multiline
                 style={styles.textbox}
                 placeholder={"Bewertung.."}
                 underlineColorAndroid={'rgba(0,0,0,0)'}
@@ -55,35 +54,35 @@ export default class SecondStep extends React.Component {
             </View>
 
             <View style={styles.ratingContainer}>
-                <TouchableOpacity onPress={() => this.setState({stars: 1})}> 
+                <TouchableOpacity onPress={() => this.setState({stars: 1})}>
                     {this.state.stars >=1 ? (
                         <MaterialIcons name={"star"} size={30}/>
                     ) : (
                         <MaterialIcons name={"star-border"} size={30}/>
                     )}
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.setState({stars: 2})}> 
+                <TouchableOpacity onPress={() => this.setState({stars: 2})}>
                     {this.state.stars >=2 ? (
                         <MaterialIcons name={"star"} size={30}/>
                     ) : (
                         <MaterialIcons name={"star-border"} size={30}/>
                     )}
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.setState({stars: 3})}> 
+                <TouchableOpacity onPress={() => this.setState({stars: 3})}>
                     {this.state.stars >=3 ? (
                         <MaterialIcons name={"star"} size={30}/>
                     ) : (
                         <MaterialIcons name={"star-border"} size={30}/>
                     )}
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.setState({stars: 4})}> 
+                <TouchableOpacity onPress={() => this.setState({stars: 4})}>
                     {this.state.stars >=4 ? (
                         <MaterialIcons name={"star"} size={30}/>
                     ) : (
                         <MaterialIcons name={"star-border"} size={30}/>
                     )}
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.setState({stars: 5})}> 
+                <TouchableOpacity onPress={() => this.setState({stars: 5})}>
                     {this.state.stars == 5 ? (
                         <MaterialIcons name={"star"} size={30}/>
                     ) : (
@@ -92,55 +91,22 @@ export default class SecondStep extends React.Component {
                 </TouchableOpacity>
             </View>
 
-            <ApolloConsumer>
-                {client => (
-                    <View>
-                        <Animated.View style={[styles.submitContainer, {opacity: this.state.anim}]}>
-                            <Button title="Speichern" onPress = { async() => {
-                                this.setState({
-                                    fetching: true,
-                                });
-                                console.log(latitude);
-                                console.log(name);
-                                console.log(_id);
-                                console.log(this.state.body);
-                                console.log(longitude);
+            <Animated.View style={[styles.submitContainer, {opacity: this.state.anim}]}>
+                <Button title="Speichern" onPress = { () => this.onSubmit()}/>
+            </Animated.View>
 
-                                const { data } = await client.mutate({
-                                    mutation: CREATE_RECOMMENDATION,
-                                    variables: { restaurant: _id, restName: name, body: this.state.body, latitude, longitude }
-                                })
-                                Animated.timing(this.state.anim,
-                                    {
-                                        toValue: 0,
-                                        duration: 350
-                                    }
-                                ).start();
-                                this.setState({
-                                    fetching: false
-                                })
-                            } }/>
-                        </Animated.View>
-            
-                        <View style={styles.successContainer}>
-                            {this.state.fetching &&
-                                <ActivityIndicator size="large" color="#0000ff" />
-                            }
-                            <Animated.View style={[styles.check, {opacity: neg}]}>
-                                <MaterialIcons name={"check"} size={30} />
-                            </Animated.View>
-                        </View>
-                    </View>
-                    
-                    )
+            <View style={styles.successContainer}>
+                {this.state.fetching &&
+                    <ActivityIndicator size="large" color="#0000ff" />
                 }
-            </ApolloConsumer>
+                <Animated.View style={[styles.check, {opacity: neg}]}>
+                    <MaterialIcons name={"check"} size={30} />
+                </Animated.View>
+            </View>
 
-            
 
-                
           </View>
-            
+
         )
     }
 }
@@ -164,8 +130,8 @@ const styles = StyleSheet.create({
   },
   textbox : {
     height: 150,
-    textAlignVertical: 'top',  
-      
+    textAlignVertical: 'top',
+
   },
   ratingContainer: {
     marginTop: 20,

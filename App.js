@@ -10,21 +10,17 @@ import { setContext } from 'apollo-link-context';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloLink } from 'apollo-link';
 import { onError } from 'apollo-link-error';
-import { createUploadLink } from 'apollo-upload-client'
-
 
 import { createStore } from "redux";
 import { Provider } from "react-redux";
 
+
 import rootReducer from "./reducers/user"
 import RootNavigation from "./navigation/RootNavigation"
 
-import connections from "./constants/Connection";
 
-
-
-const httpLink = createUploadLink({
-  uri: connections.graphql,
+const httpLink = createHttpLink({
+  uri: 'https://restaurant-ff-server-psielie.c9users.io/graphql',
 });
 
 const authLink = setContext( async(_, { headers }) => {
@@ -36,7 +32,7 @@ const authLink = setContext( async(_, { headers }) => {
       authorization: token ? `Bearer ${token}` : "",
     }
   }
-  
+
 });
 
 const client = new ApolloClient({
@@ -50,8 +46,7 @@ const client = new ApolloClient({
         );
       if (networkError) console.log(`[Network error]: ${networkError}`);
     }),
-    authLink,
-    httpLink,
+    authLink.concat(httpLink),
   ]),
   cache: new InMemoryCache()
 });
@@ -74,8 +69,8 @@ export default class App extends React.Component {
       );
     } else {
       return (
-        
-          
+
+
             <ApolloProvider client={client} >
               <Provider store={store}>
               <View style={styles.container}>
@@ -84,9 +79,9 @@ export default class App extends React.Component {
                 </View>
               </Provider>
             </ApolloProvider>
-         
-        
-        
+
+
+
       );
     }
   }

@@ -9,14 +9,8 @@ import {
 
 import Card from "../ThumbnailCard";
 
-const { width, height } = Dimensions.get("window");
-const CARD_HEIGHT = height / 5;
-const CARD_WIDTH = CARD_HEIGHT + 50;
-
-const REGION_DELTAS = {
-  latitudeDelta: 0.01864195044303443,
-  longitudeDelta: 0.010142817690068,
-}
+import LayoutConstants from "../../constants/Layout"
+import MapConstants from "../../constants/Map"
 
 export default class RestaurantScrollView extends Component {
   //https://stackoverflow.com/questions/36716207/react-native-accessing-refs-in-a-custom-component
@@ -29,8 +23,7 @@ export default class RestaurantScrollView extends Component {
     // We should detect when scrolling has stopped then animate
     // We should just debounce the event listener here
     this.props.animation.addListener(({ value }) => {
-      //console.log(value);
-      let index = Math.floor(value / (CARD_WIDTH + 20)); // animate 30% away from landing on the next item
+      let index = Math.ceil(value / (LayoutConstants.CARD_WIDTH + 20));
       if (index >= this.props.markers.length) {
         index = this.props.markers.length - 1;
       }
@@ -46,12 +39,12 @@ export default class RestaurantScrollView extends Component {
           this.props.animateToRegion(
             {
               ...location,
-              latitudeDelta: REGION_DELTAS.latitudeDelta,
-              longitudeDelta: REGION_DELTAS.longitudeDelta,
+              latitudeDelta: MapConstants.REGION_ZOOM_DELTAS.latitudeDelta,
+              longitudeDelta: MapConstants.REGION_ZOOM_DELTAS.longitudeDelta,
             }
           );
         }
-        const safeIndex = (value / (CARD_WIDTH+20))
+        const safeIndex = (value / (LayoutConstants.CARD_WIDTH+20))
         if(Number.isInteger(safeIndex)){
           this.props.handleIndexChange(safeIndex);
         }
@@ -70,7 +63,7 @@ export default class RestaurantScrollView extends Component {
           horizontal
           scrollEventThrottle={1}
           showsHorizontalScrollIndicator={true}
-          snapToInterval={CARD_WIDTH+20}
+          snapToInterval={LayoutConstants.CARD_WIDTH+20}
           pagingEnabled={true}
           onScroll={Animated.event(
             [
@@ -88,7 +81,7 @@ export default class RestaurantScrollView extends Component {
           contentContainerStyle={styles.endPadding}
         >
           {this.props.markers.map((marker, index) => (
-            <Card marker={marker} key={marker._id} count={marker.recommendations.length} callback={() => this.props.navigate("Details", marker)}/>
+            <Card marker={marker} key={index} count={marker.recommendations.length} callback={() => this.props.navigate("Details", marker)}/>
           ))
           }
         </Animated.ScrollView>
@@ -105,6 +98,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   endPadding: {
-    paddingRight: width - CARD_WIDTH - 20,
+    paddingRight: LayoutConstants.window.width - LayoutConstants.CARD_WIDTH - 20,
   },
 })

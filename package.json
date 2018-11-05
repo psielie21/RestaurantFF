@@ -16,9 +16,8 @@
     "apollo-link-context": "^1.0.8",
     "apollo-link-error": "^1.1.0",
     "apollo-link-http": "^1.5.4",
-    "apollo-upload-client": "^8.1.0",
     "babel-preset-env": "^1.6.1",
-    "expo": "^30.0.1",
+    "expo": "^27.0.1",
     "graphql": "^0.13.2",
     "react": "16.3.1",
     "react-apollo": "^2.1.11",
@@ -37,6 +36,7 @@
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.11.0",
-    "jest-expo": "^27.0.0"
+    "jest-expo": "^27.0.0",
+    "reactotron-react-native": "^2.1.0"
   }
 }
