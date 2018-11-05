@@ -28,7 +28,7 @@ const ProfileStack = createStackNavigator({
 const MapStack = createStackNavigator({
   Home: MapScreen,
   Details: RecommendationDetails,
-  CreateRecommendation: SecondStep,
+  CreateRecommendationInput: SecondStep,
   },
   {
     navigationOptions: () => ({
@@ -64,7 +64,7 @@ export default createBottomTabNavigator(
     Create: {
       screen: CreateRecommendationStack
     },
-    
+
   },
   {
     navigationOptions: ({ navigation }) => ({
@@ -86,7 +86,7 @@ export default createBottomTabNavigator(
               Platform.OS === 'ios' ? `ios-globe${focused ? '' : '-outline'}` : 'md-globe';
               break;
           case "Create":
-            iconName = 
+            iconName =
               Platform.OS === 'ios' ? `ios-create${focused ? '' : '-outline'}` : 'md-create';
             break;
         }
