@@ -37,7 +37,7 @@ export default class RecommendationDetails extends React.Component {
                     ItemSeparatorComponent={() => <View style={{height: 7, backgroundColor: "#f1fffb"}}></View>}
                 />
               </View>
-                <AddButton navigate={navigate} name={name}/>
+                <AddButton onPress={() => navigate("CreateRecommendationInput", { name })} />
             </View>
         )
     }

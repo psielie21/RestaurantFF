@@ -32,23 +32,25 @@ export default class RestaurantScrollView extends Component {
       }
 
       clearTimeout(this.regionTimeout);
-      this.regionTimeout = setTimeout(() => {
-        if (this.index !== index) {
-          this.index = index;
-          const { location } = this.props.markers[index];
-          this.props.animateToRegion(
-            {
-              ...location,
-              latitudeDelta: MapConstants.REGION_ZOOM_DELTAS.latitudeDelta,
-              longitudeDelta: MapConstants.REGION_ZOOM_DELTAS.longitudeDelta,
-            }
-          );
-        }
-        const safeIndex = (value / (LayoutConstants.CARD_WIDTH+20))
-        if(Number.isInteger(safeIndex)){
-          this.props.handleIndexChange(safeIndex);
-        }
-      }, 10);
+      if(this.props.markers.length != 0){
+        this.regionTimeout = setTimeout(() => {
+          if (this.index !== index) {
+            this.index = index;
+            const { location } = this.props.markers[index];
+            this.props.animateToRegion(
+              {
+                ...location,
+                latitudeDelta: MapConstants.REGION_ZOOM_DELTAS.latitudeDelta,
+                longitudeDelta: MapConstants.REGION_ZOOM_DELTAS.longitudeDelta,
+              }
+            );
+          }
+          const safeIndex = (value / (LayoutConstants.CARD_WIDTH+20))
+          if(Number.isInteger(safeIndex)){
+            this.props.handleIndexChange(safeIndex);
+          }
+        }, 10);
+      }
     });
   }
 

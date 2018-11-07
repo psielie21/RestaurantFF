@@ -25,7 +25,7 @@ export default class LinksScreen extends React.Component {
     super(props, context);
     this.state = {
       testPolygon: [],
-      markers: data.getNearbyRecommendations,
+      markers: [],
       region: {
         latitude: 45.52220671242907,
         longitude: -122.6653281029795,
