@@ -19,25 +19,24 @@ export default class RecommendationDetails extends React.Component {
         const adress = navigation.getParam("adress", "ERROR");
         const zip = navigation.getParam("zip", "ERROR");
         const city = navigation.getParam("city", "ERROR");
-        const recommendations = navigation.getParam("recommendations", "ERROR");
+        const marker = navigation.getParam("marker", "ERROR");
         //const otherParam = navigation.getParam('otherParam', 'some default value');
-
 
         return (
             <View style={styles.component}>
-              <Text style={styles.title}>{name}</Text>
+              <Text style={styles.title}>{marker.name}</Text>
               <View style={styles.details}>
-                  <Text>{adress} {zip} {city}</Text>
+                  <Text>{marker.adress} {marker.zip} {marker.city}</Text>
               </View>
               <View style={{flex: 1}}>
                 <FlatList
-                    data={recommendations}
-                    renderItem={(rec) => <Recommendation rec={{user: rec.item.author.username, fullName: rec.item.author.fullName, date: rec.item.date, text: rec.item.body, img: rec.item.author.avatar, rating: rec.item.rating}} navigation={this.props.navigation}/>
+                    data={marker.recommendations}
+                    renderItem={(rec) => <Recommendation rec={rec.item} navigation={this.props.navigation}/>
                     }
                     ItemSeparatorComponent={() => <View style={{height: 7, backgroundColor: "#f1fffb"}}></View>}
                 />
               </View>
-                <AddButton onPress={() => navigate("CreateRecommendationInput", { name })} />
+                <AddButton onPress={() => navigate("CreateRecommendationInput")} />
             </View>
         )
     }

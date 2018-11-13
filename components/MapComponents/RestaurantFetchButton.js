@@ -13,45 +13,34 @@ import { Entypo } from "@expo/vector-icons";
 
 
 const GET_NEARBY_RESTAURANTS = gql`
-  query GetNearbyRestaurants($coords: String, $distance: Float, $lat1: Float, $lon1: Float, $lat2: Float, $lon2: Float){
+  query GetNearbyRestaurants($lat1: Float, $lon1: Float, $lat2: Float, $lon2: Float){
     getBoxBasedRestaurants(lat1: $lat1, lon1: $lon1, lat2: $lat2, lon2: $lon2){
       name
       _id
+      adress
+      zip
+      city
       recommendations {
         _id
-      }
-      location {
-        latitude
-        longitude
-      }
-    }
-    getNearbyRecommendations(coords: $coords, distance: $distance){
-      name
-      _id
-      location {
-        latitude
-        longitude
-      }
-      adress
-      city
-      zip
-      recommendations {
-        body
         createdAt
         rating
+        body
         author {
+          avatar
           firstName
           lastName
-          avatar
+          username
         }
+      }
+      location {
+        latitude
+        longitude
       }
     }
   }
 `;
 
 export default class RestaurantFetchButton extends Component {
-
-
   render(){
     return (
       <View>

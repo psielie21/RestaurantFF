@@ -10,6 +10,8 @@ import ViewMoreText from 'react-native-view-more-text';
 
 import { FontAwesome, Entypo, MaterialIcons } from '@expo/vector-icons';
 
+import getUserFriendlyDate from "../util/getUserFriendlyDate";
+
 export default class Recommendation extends Component {
     renderViewMore(onPress){
         return(
@@ -33,11 +35,12 @@ export default class Recommendation extends Component {
             elem.push(<MaterialIcons key={i} name={"star-border"} size={30}/>)
         }
 
-        return elem
+        return elem;
     }  
 
     render() {
         let rec = this.props.rec;
+        console.log(rec);
         const { navigate } = this.props.navigation;
 
         this.state = {
@@ -48,21 +51,24 @@ export default class Recommendation extends Component {
         const _save = () => {
 
         }
+
+        const avatarPic = rec.author.avatar ?
+                         {uri: rec.author.avatar} : require('../assets/images/default-avatar.png');
         
         return (
             <View style={styles.root}>
                 <View style={styles.container}>
                     <View style={styles.header}>
-                        <Image source={{uri: rec.img}} style={{width:50, height: 50}}/>
+                        <Image source={avatarPic} style={{width:50, height: 50}}/>
                         <View style={styles.metacontainer}>
                             <View style={styles.metatopcontainer}>
-                                <Text style={styles.fullName}>{rec.fullName}</Text>
-                                <Text style={styles.person}>@{rec.user}</Text>
+                                <Text style={styles.fullName}>{rec.author.firstName + " " + rec.author.lastName}</Text>
+                                <Text style={styles.person}>@{rec.author.username}</Text>
                             </View>
                             <View style={styles.metabottomcontainer}>
                                 <View style={{display: "flex", flexDirection: "row"}}>
                                     <FontAwesome name="calendar" style={styles.icon}/>
-                                    <Text style={styles.date}>{rec.date}</Text>
+                                    <Text style={styles.date}>{getUserFriendlyDate(rec.createdAt)}</Text>
                                 </View>
                                 <View style={{display: "flex", flexDirection: "row"}}>
                                     {rec.location  && 
@@ -72,12 +78,10 @@ export default class Recommendation extends Component {
                                         <Text style={styles.location}>{rec.location}</Text>
                                     }
                                 </View>
-                               
                             </View>
                         </View>
-                        
-                        
                     </View>
+
                     <View style={styles.body}>
                         <Text style={styles.restaurant}>{rec.restaurant}</Text>
                         <ViewMoreText
@@ -85,18 +89,15 @@ export default class Recommendation extends Component {
                             renderViewMore={this.renderViewMore}
                             renderViewLess={this.renderViewLess}
                         >
-                            <Text style={styles.text}>"{rec.text}"</Text>
+                            <Text style={styles.text}>"{rec.body}"</Text>
                         </ViewMoreText>
 
                         <View style={styles.rating}>
-
                             {
                                 this.renderStars(rec)
                             }
-
                         </View>
                 </View>
-
             </View>
         </View>
         )

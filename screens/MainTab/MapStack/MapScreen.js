@@ -116,8 +116,8 @@ export default class LinksScreen extends React.Component {
       return;
     }
     this.setState({
-      markers: data.getBoxBasedRestaurants.concat(data.getNearbyRecommendations)
-    })
+      markers: data.getBoxBasedRestaurants
+    });
   }
 
   onRegionChange(region) {

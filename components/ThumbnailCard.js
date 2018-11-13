@@ -18,86 +18,39 @@ const CARD_WIDTH = CARD_HEIGHT + 50;
 export default class ThumbnailCard extends React.Component {
     render(){
       const count = this.props.count;
-      if(count > 1){
-        return(
-          <TouchableNativeFeedback onPress={this.props.callback}>
-            <View style={styles.card}>
-              <Text>{this.props.marker.name}</Text>
-              <View style={styles.rec}>
-                <Image
-                  source={{uri: this.props.marker.recommendations[0].author.avatar}}
-                  style={styles.cardImage}
-                  resizeMode="cover"
-                 />
-                <View style={styles.textContent}>
-                  <View style={styles.nameContainer}>
-                  <Text numberOfLines={1} style={styles.cardtitle}>{this.props.marker.recommendations[0].author.fullName}</Text>
-                  <Text numberOfLines={1} style={styles.rating}>{this.props.marker.recommendations[0].rating}/5</Text>
-                  </View>
-                  <Text numberOfLines={1} style={styles.cardDescription}>
-                    {this.props.marker.recommendations[0].body}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.rec}>
-                <Image
-                  source={{uri: this.props.marker.recommendations[1].author.avatar}}
-                  style={styles.cardImage}
-                  resizeMode="cover"
-                 />
-                <View style={styles.textContent}>
-                  <View style={styles.nameContainer}>
-                  <Text numberOfLines={1} style={styles.cardtitle}>{this.props.marker.recommendations[1].author.fullName}</Text>
-                  <Text numberOfLines={1} style={styles.rating}>{this.props.marker.recommendations[1].rating}/5</Text>
-                  </View>
-                  <Text numberOfLines={1} style={styles.cardDescription}>
-                    {this.props.marker.recommendations[1].body}
-                  </Text>
-                </View>
-              </View>
-          </View>
-        </TouchableNativeFeedback>
-          )
-      }else if( count == 1){
-        return(
-          <TouchableNativeFeedback onPress={this.props.callback}>
-            <View style={styles.card}>
-              <Text>{this.props.marker.name}</Text>
-              <View style={styles.rec}>
-                <Image
-                  source={{uri: this.props.marker.recommendations[0].author.avatar}}
-                  style={styles.cardImage}
-                  resizeMode="cover"
-                 />
-                <View style={styles.textContent}>
-                  <View style={styles.nameContainer}>
-                  <Text numberOfLines={1} style={styles.cardtitle}>{this.props.marker.recommendations[0].author.fullName}</Text>
-                  <Text numberOfLines={1} style={styles.rating}>{this.props.marker.recommendations[0].rating}/5</Text>
-                  </View>
-                  <Text numberOfLines={1} style={styles.cardDescription}>
-                    {this.props.marker.recommendations[0].body}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </TouchableNativeFeedback>
-        )
-      }else {
-        return(
-          <TouchableNativeFeedback onPress={this.props.callback}>
-            <View style={styles.card}>
-              <Text>{this.props.marker.name}</Text>
-              <View style={styles.rec}>
-
-                <View style={styles.textContent}>
-
-                </View>
-              </View>
-            </View>
-          </TouchableNativeFeedback>
-        )
-        
+      const recommendationPreview = this.props.marker.recommendations.length > 2 ?
+                            this.props.marker.recommendations.slice(0,2) : this.props.marker.recommendations;
+      if(this.props.marker.recommendations.length != 0){
+        console.log(recommendationPreview);
       }
+      return (
+        <TouchableNativeFeedback onPress={this.props.callback}>
+            <View style={styles.card}>
+              <Text>{this.props.marker.name}</Text>
+                {recommendationPreview.map(recommendation => {
+                  const avatarPic = recommendation.author.avatar ?
+                         {uri: recommendation.author.avatar} : require('../assets/images/default-avatar.png');
+                  return (
+                    <View style={styles.rec}>
+                      <Image
+                        source={avatarPic}
+                        style={styles.cardImage}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.textContent}>
+                        <View style={styles.nameContainer}>
+                          <Text numberOfLines={1} style={styles.cardtitle}>{recommendation.author.firstName + " " + recommendation.author.lastName}</Text>
+                          <Text numberOfLines={1} style={styles.rating}>{recommendation.rating}/5</Text>
+                        </View>
+                        <Text numberOfLines={1} style={styles.cardDescription}>
+                          {recommendation.body}
+                        </Text>
+                      </View>
+                    </View>
+                  )})}
+            </View>
+          </TouchableNativeFeedback>
+        )
     }
 }
 
@@ -117,7 +70,6 @@ const styles = StyleSheet.create({
       height: CARD_HEIGHT,
       width: CARD_WIDTH,
       overflow: "hidden",
-  
     },
     rec: {
       display: "flex",

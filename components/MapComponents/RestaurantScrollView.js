@@ -89,9 +89,8 @@ export default class RestaurantScrollView extends Component {
             
               {this.props.markers.map((marker, index) => (
                 <Card marker={marker} key={index} count={marker.recommendations.length} callback={() => {
-                  console.log(marker);
                   client.writeData({ data: { activeRestaurant: marker._id }});
-                  this.props.navigate("Details", marker);
+                  this.props.navigate("Details", {marker});
                 }}/>
               ))
               }

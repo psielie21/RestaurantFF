@@ -43,12 +43,6 @@ export default class SecondStep extends React.Component {
     }
 
     onSubmit(createRecommendation){
-        console.log("##########");
-        console.log(this.activeRestaurant)
-        console.log("##########");
-        console.log(this.activeLocation);
-        console.log("##########");
-
         createRecommendation({ variables: { restaurant: this.activeRestaurant._id, body: this.state.text,
                                             rating: this.state.stars, restName: this.activeRestaurant.name,
                                             latitude: this.activeLocation.latitude,
