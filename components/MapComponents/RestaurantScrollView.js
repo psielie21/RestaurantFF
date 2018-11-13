@@ -7,6 +7,8 @@ import {
     Dimensions,
 } from "react-native";
 
+import { ApolloConsumer } from 'react-apollo';
+
 import Card from "../ThumbnailCard";
 
 import LayoutConstants from "../../constants/Layout"
@@ -60,33 +62,42 @@ export default class RestaurantScrollView extends Component {
 
   render(){
     return(
-      <Animated.ScrollView
-          ref={ref => this.scrollView = ref}
-          horizontal
-          scrollEventThrottle={1}
-          showsHorizontalScrollIndicator={true}
-          snapToInterval={LayoutConstants.CARD_WIDTH+20}
-          pagingEnabled={true}
-          onScroll={Animated.event(
-            [
-              {
-                nativeEvent: {
-                  contentOffset: {
-                    x: this.props.animation
+      <ApolloConsumer>
+        {client => (
+          <Animated.ScrollView
+              ref={ref => this.scrollView = ref}
+              horizontal
+              scrollEventThrottle={1}
+              showsHorizontalScrollIndicator={true}
+              snapToInterval={LayoutConstants.CARD_WIDTH+20}
+              pagingEnabled={true}
+              onScroll={Animated.event(
+                [
+                  {
+                    nativeEvent: {
+                      contentOffset: {
+                        x: this.props.animation
+                      },
+                    },
                   },
-                },
-              },
-            ],
-            { useNativeDriver: true },
+                ],
+                { useNativeDriver: true },
+              )}
+              style={styles.scrollView}
+              contentContainerStyle={styles.endPadding}
+            > 
+            
+              {this.props.markers.map((marker, index) => (
+                <Card marker={marker} key={index} count={marker.recommendations.length} callback={() => {
+                  console.log(marker);
+                  client.writeData({ data: { activeRestaurant: marker._id }});
+                  this.props.navigate("Details", marker);
+                }}/>
+              ))
+              }
+            </Animated.ScrollView>
           )}
-          style={styles.scrollView}
-          contentContainerStyle={styles.endPadding}
-        >
-          {this.props.markers.map((marker, index) => (
-            <Card marker={marker} key={index} count={marker.recommendations.length} callback={() => this.props.navigate("Details", marker)}/>
-          ))
-          }
-        </Animated.ScrollView>
+        </ApolloConsumer>
     )
   }
 }

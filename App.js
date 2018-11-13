@@ -9,14 +9,19 @@ import { createHttpLink } from 'apollo-link-http';
 import { setContext } from 'apollo-link-context';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloLink } from 'apollo-link';
+import { withClientState } from 'apollo-link-state';
 import { onError } from 'apollo-link-error';
 
 import { createStore } from "redux";
 import { Provider } from "react-redux";
 
 
+
 import rootReducer from "./reducers/user"
 import RootNavigation from "./navigation/RootNavigation"
+import gql from 'graphql-tag';
+
+const cache = new InMemoryCache();
 
 
 const httpLink = createHttpLink({
@@ -25,14 +30,36 @@ const httpLink = createHttpLink({
 
 const authLink = setContext( async(_, { headers }) => {
   const token = await AsyncStorage.getItem('@restauranttoken');
-
   return {
     headers: {
       ...headers,
       authorization: token ? `Bearer ${token}` : "",
     }
   }
+});
 
+const stateLink = withClientState({
+  cache,
+  resolvers: {
+    Mutation: {
+      updateActiveRestaurant: (_, { name }, { cache }) => {
+        console.log(cache);
+        const data = {
+          activeRestaurant: {
+            __typename: 'Restaurant',
+            name
+          },
+        };
+        cache.writeData({ data });
+        return null;
+      },
+    },
+    Query: {
+      getActualRestaurants: (_, args, { cache }) => {
+        return cache;
+      }
+    },
+  }
 });
 
 const client = new ApolloClient({
@@ -46,9 +73,10 @@ const client = new ApolloClient({
         );
       if (networkError) console.log(`[Network error]: ${networkError}`);
     }),
+    stateLink,
     authLink.concat(httpLink),
   ]),
-  cache: new InMemoryCache()
+  cache
 });
 
 const store = createStore(rootReducer)
