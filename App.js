@@ -21,7 +21,14 @@ import rootReducer from "./reducers/user"
 import RootNavigation from "./navigation/RootNavigation"
 import gql from 'graphql-tag';
 
-const cache = new InMemoryCache();
+const cache = new InMemoryCache({
+  cacheRedirects: {
+    Query: {
+      restaurant: (_, args, { getCacheKey }) =>
+        getCacheKey({ __typename: 'Restaurant', id: args.id })
+    },
+  },
+});
 
 
 const httpLink = createHttpLink({

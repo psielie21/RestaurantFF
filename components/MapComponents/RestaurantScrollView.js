@@ -49,7 +49,7 @@ export default class RestaurantScrollView extends Component {
           }
           const safeIndex = (value / (LayoutConstants.CARD_WIDTH+20))
           if(Number.isInteger(safeIndex)){
-            this.props.handleIndexChange(safeIndex);
+            //this.props.handleIndexChange(safeIndex);
           }
         }, 10);
       }

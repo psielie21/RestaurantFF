@@ -40,7 +40,6 @@ export default class Recommendation extends Component {
 
     render() {
         let rec = this.props.rec;
-        console.log(rec);
         const { navigate } = this.props.navigation;
 
         this.state = {

@@ -11,6 +11,7 @@ import MapScreen from '../screens/MainTab/MapStack/MapScreen';
 import RecommendationDetails from "../screens/MainTab/MapStack/RecommendationDetails";
 
 import NewsScreen from '../screens/MainTab/NewsScreen';
+import TestScreen from '../screens/YouTubeScreen';
 
 import CreateScreen from '../screens/MainTab/CreateRecommendationStack/CreateRecommendationMainScreen';
 import SecondStep from "../screens/MainTab/CreateRecommendationStack/CreateRecommendationInputScreen";
@@ -59,7 +60,7 @@ export default createBottomTabNavigator(
       screen: MapStack,
     },
     News: {
-      screen: NewsScreen,
+      screen: TestScreen,
     },
     Create: {
       screen: CreateRecommendationStack

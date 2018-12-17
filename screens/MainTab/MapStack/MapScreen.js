@@ -18,6 +18,38 @@ import LayoutConstants from "../../../constants/Layout";
 import RestaurantScrollView from "../../../components/MapComponents/RestaurantScrollView"
 import RestaurantMarker from "../../../components/MapComponents/RestaurantMarker";
 import RestaurantFetchButton from "../../../components/MapComponents/RestaurantFetchButton"
+import { Query, ApolloConsumer } from 'react-apollo';
+import gql from "graphql-tag";
+
+
+export const GET_NEARBY_RESTAURANTS = gql`
+  query GetNearbyRestaurants($lat1: Float, $lon1: Float, $lat2: Float, $lon2: Float){
+    getBoxBasedRestaurants(lat1: $lat1, lon1: $lon1, lat2: $lat2, lon2: $lon2){
+      name
+      _id
+      adress
+      zip
+      city
+      recommendations {
+        _id
+        createdAt
+        rating
+        body
+        author {
+          avatar
+          firstName
+          lastName
+          username
+        }
+      }
+      location {
+        latitude
+        longitude
+      }
+    }
+  }
+`;
+
 
 
 export default class LinksScreen extends React.Component {
@@ -38,7 +70,11 @@ export default class LinksScreen extends React.Component {
     this.currRegion = {
       latitude: 45.52220671242907,
       longitude: -122.6653281029795,
+      latitudeDelta: MapConstants.REGION_DELTAS.latitudeDelta,
+      longitudeDelta: MapConstants.REGION_DELTAS.longitudeDelta,
     }
+
+    this.latestPosition = this.getCurrentPosition();
 
   }
   static navigationOptions = {
@@ -69,19 +105,7 @@ export default class LinksScreen extends React.Component {
       }
   }
 
-  startFetchResults(){
-    this.setState({ fetching: true })
-  }
-
-  endFetchResults(){
-    this.setState({  fetching: false })
-  }
-
-  getCurrentPositionAndCenter(){
-    this.setState({ centerPos: {
-                        latitude: this.currRegion.latitude,
-                        longitude: this.currRegion.longitude,
-                      } })
+  getCurrentPosition(){
     return {
       coords: this.currRegion.longitude + ", " + this.currRegion.latitude,
       lat1: (this.currRegion.latitude - this.currRegion.latitudeDelta/2),
@@ -89,6 +113,12 @@ export default class LinksScreen extends React.Component {
       lat2: (this.currRegion.latitude + this.currRegion.latitudeDelta/2),
       lon2: (this.currRegion.longitude + this.currRegion.longitudeDelta/2),
     }
+  }
+  getCurrentPositionAndCenter(){
+    this.setState({ centerPos: {
+                        latitude: this.currRegion.latitude,
+                        longitude: this.currRegion.longitude,
+                      } })
   }
 
   setPolygonForDebug(){
@@ -109,19 +139,16 @@ export default class LinksScreen extends React.Component {
     this.map.animateToRegion(mapsObj)
   }
 
-  async _searchNearby(data){
-    let { status } = await Permissions.askAsync(Permissions.LOCATION);
-    if (status !== 'granted') {
-      Alert.alert("GPS benötigt für die Karte")
-      return;
-    }
-    this.setState({
-      markers: data.getBoxBasedRestaurants
-    });
-  }
-
   onRegionChange(region) {
     this.currRegion = region;
+  }
+
+  async refetchData(refetch){
+    this.handleScreenConstraints();
+    this.setState({ fetching: true});
+    this.latestPosition = this.getCurrentPosition();
+    refetch({ variables: this.latestPosition });
+    this.skip = false;
   }
 
   render() {
@@ -129,6 +156,7 @@ export default class LinksScreen extends React.Component {
     return (
       <View style={styles.container}>
         <MapView
+          showsPointsOfInterest={false}
           ref={map => this.map = map}
           initialRegion={this.state.region}
           style={styles.container}
@@ -151,81 +179,105 @@ export default class LinksScreen extends React.Component {
           </MapView.Marker>
         }
 
+        <Query query={GET_NEARBY_RESTAURANTS} variables={this.latestPosition}>
+          {({data, loading}) => {
+            if (loading) return null;
+            return (
+              <View>
+                {data.getBoxBasedRestaurants.map((marker, index) => {
+                  const inputRange = [
+                    (index - 1) * LayoutConstants.CARD_WIDTH,
+                    index * LayoutConstants.CARD_WIDTH,
+                    ((index + 1) * LayoutConstants.CARD_WIDTH),
+                  ];
+                  const scale = this.animation.interpolate({
+                    inputRange,
+                    outputRange: [1, 2.5, 1],
+                    extrapolate: "clamp",
+                  });
+                  const opacity = this.animation.interpolate({
+                    inputRange,
+                    outputRange: [0.35, 1, 0.35],
+                    extrapolate: "clamp",
+                  });
+                  const scaleStyle = {
+                    transform: [
+                      {
+                        scale
+                      },
+                    ],
+                  };
+                  return (
+                    //<RestaurantMarker keyProp={index} location={marker.location} opacity={opacity} scaleStyle={scaleStyle}/>
+                    <MapView.Marker key={index} onPress={() => this.restaurantScrollView.scrollTo(index * (LayoutConstants.CARD_WIDTH+20))} coordinate={marker.location}>
+                      {this.state.index == index &&
+                        <View style={{ backgroundColor: "blue", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1 }} />
+                      }
+                      {this.state.index != index &&
+                        <View style={{ backgroundColor: "red", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1 }} />
+                      }
+                    </MapView.Marker>
+                  );
+                })}
+              </View>
+            )
+          }}
+        </Query>
 
-        {this.state.markers.map((marker, index) => {
-          const inputRange = [
-            (index - 1) * LayoutConstants.CARD_WIDTH,
-            index * LayoutConstants.CARD_WIDTH,
-            ((index + 1) * LayoutConstants.CARD_WIDTH),
-          ];
-          const scale = this.animation.interpolate({
-            inputRange,
-            outputRange: [1, 2.5, 1],
-            extrapolate: "clamp",
-          });
-          const opacity = this.animation.interpolate({
-            inputRange,
-            outputRange: [0.35, 1, 0.35],
-            extrapolate: "clamp",
-          });
-          const scaleStyle = {
-            transform: [
-              {
-                scale
-              },
-            ],
-          };
-          return (
-            //<RestaurantMarker keyProp={index} location={marker.location} opacity={opacity} scaleStyle={scaleStyle}/>
-            <MapView.Marker key={index} onPress={() => this.restaurantScrollView.scrollTo(index * (LayoutConstants.CARD_WIDTH+20))} coordinate={marker.location}>
-              {this.state.index == index &&
-                <View style={{ backgroundColor: "blue", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1 }} />
-              }
-              {this.state.index != index &&
-                <View style={{ backgroundColor: "red", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1 }} />
-              }
-            </MapView.Marker>
-          );
 
-        })}
+        
         </MapView>
 
-          <RestaurantScrollView markers={this.state.markers}
-                                onRef={(ref) => { this.restaurantScrollView = ref }}
-                                navigate={navigate}
-                                animateToRegion={this.moveRegions.bind(this)}
-                                handleIndexChange={this.handleIndexChange.bind(this)}
-                                animation={this.animation}/>
+        <View>
+          <Query query={GET_NEARBY_RESTAURANTS} variables={this.latestPosition} skip={this.skip}>
+            {({ data, client, loading, refetch }) => {
+              //write to local apollo store if data has changed
+              const latestLocation = JSON.stringify(this.latestPosition);
+              client.writeData({ data: { latestQuery: latestLocation }});
+              
+              if(loading) return null;
+              return  <RestaurantScrollView markers={data.getBoxBasedRestaurants}
+                                      onRef={(ref) => { this.restaurantScrollView = ref }}
+                                      navigate={navigate}
+                                      animateToRegion={this.moveRegions.bind(this)}
+                                      handleIndexChange={this.handleIndexChange.bind(this)}
+                                      animation={this.animation}/>
+            }}
+          </Query>
 
           <View style={styles.button}>
-            <View>
-              <TouchableNativeFeedback  onPress={async() => {
-                let location = await Location.getCurrentPositionAsync({});
-                this.setState(() => ({
-                  userPos: {
-                    latitude: location.coords.latitude,
-                    longitude: location.coords.longitude
-                  }
-                }))
-                this.map.animateToRegion(
-                  {
-                    ...this.state.userPos,
-                    latitudeDelta: this.state.region.latitudeDelta,
-                    longitudeDelta: this.state.region.longitudeDelta,
-                  },
-                  350
-                );
-                }}>
-                <Entypo name={"compass"} size={35} style={styles.icon}/>
-              </TouchableNativeFeedback>
-            </View>
+              <View>
+                <TouchableNativeFeedback  onPress={async() => {
+                  let location = await Location.getCurrentPositionAsync({});
+                  this.setState(() => ({
+                    userPos: {
+                      latitude: location.coords.latitude,
+                      longitude: location.coords.longitude,
+                    }
+                  }))
+                  this.map.animateToRegion(
+                    {
+                      ...this.state.userPos,
+                      latitudeDelta: this.state.region.latitudeDelta,
+                      longitudeDelta: this.state.region.longitudeDelta,
+                    },
+                    350
+                  );
+                  }}>
+                  <Entypo name={"compass"} size={35} style={styles.icon}/>
+                </TouchableNativeFeedback>
+              </View>
 
-            <RestaurantFetchButton onStartFetchingResults={this.startFetchResults.bind(this)}
-                                  onEndFetchingResults={this.endFetchResults.bind(this)}
-                                  handleScreenConstraints={this.handleScreenConstraints.bind(this)}
-                                  getArgumentsForQuery={this.getCurrentPositionAndCenter.bind(this)}
-                                  onCompletedFetching={this._searchNearby.bind(this)}
-                                  fetching={this.state.fetching}/>
+              <Query  query={GET_NEARBY_RESTAURANTS} variables={this.latestPosition} >
+                  {({refetch, loading})=>(
+                    <RestaurantFetchButton handleRefetch={async () => this.refetchData(refetch)}
+                    fetching={loading}/>
+                  ) }
+              </Query>
+
+              
+            
+            </View>
           </View>
         </View>
     );

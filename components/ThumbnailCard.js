@@ -20,9 +20,6 @@ export default class ThumbnailCard extends React.Component {
       const count = this.props.count;
       const recommendationPreview = this.props.marker.recommendations.length > 2 ?
                             this.props.marker.recommendations.slice(0,2) : this.props.marker.recommendations;
-      if(this.props.marker.recommendations.length != 0){
-        console.log(recommendationPreview);
-      }
       return (
         <TouchableNativeFeedback onPress={this.props.callback}>
             <View style={styles.card}>

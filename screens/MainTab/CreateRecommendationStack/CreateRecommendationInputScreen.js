@@ -4,14 +4,31 @@ import { View, Text, StyleSheet, TextInput, Animated, TouchableOpacity, Button, 
 import { MaterialIcons } from "@expo/vector-icons";
 import { Query, Mutation } from "react-apollo";
 import gql from "graphql-tag";
+import { GET_NEARBY_RESTAURANTS } from "../MapStack/MapScreen"
 
 
 const GET_ACTIVE_RESTAURANT = gql`
     {
         activeRestaurant @client
     }
-    
 `;
+
+const GET_LATEST_QUERY_ARGS = gql`
+    {
+         latestQuery @client
+    }
+`;
+
+
+
+const GET_SOME_RESTAURANT = gql`
+    query getSomeRestaurant($id: ID){
+        restaurant(id: $id) @client {
+            name
+        }
+    }
+`;
+
 
 const CREATE_RECOMMENDATION = gql`
     mutation CreateRecommendation($restaurant: ID, $body: String, $rating: Int!, 
@@ -21,6 +38,7 @@ const CREATE_RECOMMENDATION = gql`
             pictures: $pictures, restName: $restName, latitude: $latitude, 
             longitude: $longitude){
                 _id
+                body
             }
     }
 `;
@@ -43,10 +61,15 @@ export default class SecondStep extends React.Component {
     }
 
     onSubmit(createRecommendation){
-        createRecommendation({ variables: { restaurant: this.activeRestaurant._id, body: this.state.text,
+        createRecommendation({  variables: { restaurant: this.activeRestaurant._id, body: this.state.text,
                                             rating: this.state.stars, restName: this.activeRestaurant.name,
                                             latitude: this.activeLocation.latitude,
-                                            longitude: this.activeLocation.longitude } });
+                                            longitude: this.activeLocation.longitude },
+                                            refetchQueries: [{
+                                                query: GET_NEARBY_RESTAURANTS,
+                                                variables: this.latestQuery,
+                                            }]
+                                        });
         this.setState({
             fetching: true,
         })
@@ -59,7 +82,9 @@ export default class SecondStep extends React.Component {
             ).start();
             this.setState({
                 fetching: false
-            })
+            });
+            this.props.navigation.popToTop();
+            
         }, 2500)
     }
 
@@ -70,7 +95,13 @@ export default class SecondStep extends React.Component {
 
         return (
           <View style={styles.root}>
-            
+            <Query query={GET_LATEST_QUERY_ARGS}>
+                {({data}) => {
+                    this.latestQuery = JSON.parse(data.latestQuery);
+                    return <View></View>
+                }}
+            </Query>
+
             <Query query={GET_ACTIVE_RESTAURANT}>
                 {({ data, client }) => {
                     const activeRestaurant = client.cache.data.get(`Restaurant:${data.activeRestaurant}`);
@@ -128,7 +159,7 @@ export default class SecondStep extends React.Component {
                                 </TouchableOpacity>
                             </View>
     
-                            <Mutation mutation={CREATE_RECOMMENDATION}>
+                            <Mutation mutation={CREATE_RECOMMENDATION} >
                                 {(createRecommendation, { loading, error }) => (
                                     <View>
                                         <Animated.View style={[styles.submitContainer, {opacity: this.state.anim}]}>
@@ -141,8 +172,6 @@ export default class SecondStep extends React.Component {
                                             <Text>{console.log(error)}</Text>
                                         }
                                     </View>
-                                    
-                                    
                                 )}
                                 
                             </Mutation>
