@@ -26,8 +26,9 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-27.0.0.tar.gz",
     "react-native-keyboard-aware-scroll-view": "^0.7.2",
     "react-native-maps": "^0.21.0",
+    "react-native-navigation": "^2.5.0",
     "react-native-view-more-text": "^2.0.1",
-    "react-navigation": "^2.3.0",
+    "react-navigation": "^3.0.9",
     "react-redux": "^5.0.7",
     "redux": "^4.0.0",
     "tcomb-form-native": "^0.6.15"

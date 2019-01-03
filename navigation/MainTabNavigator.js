@@ -68,7 +68,7 @@ export default createBottomTabNavigator(
 
   },
   {
-    navigationOptions: ({ navigation }) => ({
+    defaultNavigationOptions: ({ navigation }) => ({
       tabBarIcon: ({ focused }) => {
         const { routeName } = navigation.state;
         let iconName;

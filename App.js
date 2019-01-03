@@ -21,7 +21,6 @@ import { Provider } from "react-redux";
 
 import rootReducer from "./reducers/user"
 import RootNavigation from "./navigation/RootNavigation"
-import gql from 'graphql-tag';
 
 const cache = new InMemoryCache({
   cacheRedirects: {

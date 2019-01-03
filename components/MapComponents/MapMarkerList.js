@@ -5,6 +5,7 @@ import {
 } from "react-native";
 
 import { MapView} from 'expo';
+import LayoutConstants from "../../constants/Layout";
 
 export default class MapMarkerList extends Component {
     render(){
@@ -37,7 +38,8 @@ export default class MapMarkerList extends Component {
                         */
                         return (
                             //<RestaurantMarker keyProp={index} location={marker.location} opacity={opacity} scaleStyle={scaleStyle}/>
-                            <MapView.Marker key={index} onPress={() => this.restaurantScrollView.scrollTo(index * (LayoutConstants.CARD_WIDTH+20))} coordinate={marker.location}>
+                            //implement later: onPress={(index) => this.restaurantScrollView.scrollTo(index * (LayoutConstants.CARD_WIDTH+20))}
+                            <MapView.Marker key={index} coordinate={marker.location}>
                             {this.props.index == index &&
                                 <View style={{ backgroundColor: "blue", height: 5, width: 5, borderRadius: 12, borderColor: "black", borderWidth: 1 }} />
                             }

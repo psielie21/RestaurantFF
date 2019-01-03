@@ -13,6 +13,17 @@ import { Entypo } from "@expo/vector-icons";
 
 
 export default class RestaurantFetchButton extends Component {
+  componentDidMount(){
+    //setup a ref on the parent component
+    if(this.props.onRef != null){
+      this.props.onRef(this);
+    }
+  }
+
+  refetchManually(){
+    this.props.handleRefetch();
+  }
+  
   render(){
     return (
       <View>

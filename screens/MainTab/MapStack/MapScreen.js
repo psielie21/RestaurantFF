@@ -2,28 +2,22 @@ import React from 'react';
 import {
   Alert,
   StyleSheet,
-  Text,
   View,
   Animated,
-  Dimensions,
-  Button,
-  TouchableNativeFeedback,
-  ActivityIndicator
-} from "react-native";
+  } from "react-native";
+import { NavigationEvents } from 'react-navigation';
 
-import { Entypo } from "@expo/vector-icons";
-import { MapView, Permissions, Location } from 'expo';
 
-import data  from "../../../data";
+import { MapView } from 'expo';
+
 import MapConstants from "../../../constants/Map";
 import LayoutConstants from "../../../constants/Layout";
 import RestaurantScrollView from "../../../components/MapComponents/RestaurantScrollView"
-import RestaurantMarker from "../../../components/MapComponents/RestaurantMarker";
 import RestaurantFetchButton from "../../../components/MapComponents/RestaurantFetchButton"
 import MapMarkerList from "../../../components/MapComponents/MapMarkerList";
 import CurrentLocationButton from "../../../components/MapComponents/ButtonMenu/CurrentLocationButton"
 
-import { Query, ApolloConsumer } from 'react-apollo';
+import { ApolloConsumer } from 'react-apollo';
 import gql from "graphql-tag";
 
 
@@ -59,7 +53,7 @@ export default class LinksScreen extends React.Component {
   constructor(props, context){
     super(props, context);
     this.state = {
-      markers: [],
+      restaurants: [],
       index : 0,
     };
 
@@ -79,6 +73,7 @@ export default class LinksScreen extends React.Component {
   componentWillMount() {
     this.index = 0;
     this.animation = new Animated.Value(0.01);
+    console.log("MOUNTED");
   }
 
   handleIndexChange(index) {
@@ -91,13 +86,6 @@ export default class LinksScreen extends React.Component {
       latitudeDelta: MapConstants.REGION_DELTAS.latitudeDelta,
       longitudeDelta: MapConstants.REGION_DELTAS.longitudeDelta,
     }, 350);
-
-    this.setState(() => ({
-      userPos: {
-        latitude: position.latitude,
-        longitude: position.longitude,
-      }
-    }))
   }
 
   getCurrentPosition(){
@@ -123,25 +111,23 @@ export default class LinksScreen extends React.Component {
         },
         350);
         return {
-          latitude: this.currRegion.latitude,
-          longitude: this.currRegion.longitude,
-          latitudeDelta: MapConstants.REGION_DELTAS.latitudeDelta,
-          longitudeDelta: MapConstants.REGION_DELTAS.longitudeDelta,
+          lat1: (this.currRegion.latitude - MapConstants.REGION_DELTAS.latitudeDelta/2),
+          lon1: (this.currRegion.longitude -  MapConstants.REGION_DELTAS.longitudeDelta/2),
+          lat2: (this.currRegion.latitude + MapConstants.REGION_DELTAS.latitudeDelta/2),
+          lon2: (this.currRegion.longitude +  MapConstants.REGION_DELTAS.longitudeDelta/2),
         }
       }else {
         return this.getCurrentPosition()
       }
-    
   }
 
   moveRegions(mapsObj){
     this.map.animateToRegion(mapsObj)
   }
 
-  refetchData(refetch){
-    let coords = this.handleScreenConstraints();
-    refetch(coords);
-  }
+  onFetchingError = () => this.setState(() => ({error: true}))
+
+  onRestaurantsFetched = restaurants => this.setState(() => ({ restaurants }));
 
   render() {
     const { navigate } = this.props.navigation;
@@ -149,62 +135,61 @@ export default class LinksScreen extends React.Component {
 
     return (
       <View style={styles.container}>
-        <Query query={GET_NEARBY_RESTAURANTS} variables={this.latestPosition}>
-          {({data, client, loading, refetch, error}) => {
-            if(loading){
-              return <MapView showsPointsOfInterest={false}
-                              ref={map => this.map = map}
-                              initialRegion={this.currRegion}
-                              style={styles.container}/>;
+        <NavigationEvents
+          onWillFocus={payload => {
+            if(payload.action != undefined && payload.action.type == "Navigation/POP_TO_TOP"){
+              this.restaurantFetchButton.refetchManually();
             }
-
-            if(error) return (
-              <Button title="ERROR - RETRY" onPress={() => {
-                this.handleScreenConstraints();
-                client.resetStore();
-                }} color={"blue"}>
-                {loading &&
-                  <ActivityIndicator size="large" color="#00ff00" />
-                }
-              </Button>
-            ) 
-            return (
-              <View style={styles.container}>
-                 <MapView
-                  showsPointsOfInterest={false}
-                  ref={map => this.map = map}
-                  initialRegion={this.currRegion}
-                  style={styles.container}
-                  onRegionChange={e => this.currRegion = e}>
-
-                {this.state.userPos &&
-                  <MapView.Marker coordinate={this.state.userPos}/>
-                }
-
-
-                  <MapMarkerList markers={data.getBoxBasedRestaurants} index={this.state.index}/>
-                </MapView>
-
-                <View>      
-                    <RestaurantScrollView markers={data.getBoxBasedRestaurants}
-                                          onRef={(ref) => { this.restaurantScrollView = ref }}
-                                          navigate={navigate}
-                                          animateToRegion={this.moveRegions.bind(this)}
-                                          handleIndexChange={this.handleIndexChange.bind(this)}
-                                          animation={this.animation}/>
-                    <View style={styles.button}>
-                        <CurrentLocationButton centerMap={this.centerMap.bind(this)} />
-                        <RestaurantFetchButton handleRefetch={() => this.refetchData(refetch)}
-                                                            fetching={loading}/>
-                    </View>
-                  </View>
-
-                
-              </View>
-            )
           }}
-        </Query>
+        />
+        <MapView
+          showsPointsOfInterest={false}
+          ref={map => this.map = map}
+          initialRegion={this.currRegion}
+          style={styles.container}
+          showsUserLocation={true}
+          onRegionChange={e => this.currRegion = e}>
+
+          <MapMarkerList markers={this.state.restaurants}  index={this.state.index}/>
+        
+        </MapView>
+        <View>      
+          <RestaurantScrollView markers={this.state.restaurants}
+                                onRef={(ref) => { this.restaurantScrollView = ref }}
+                                navigate={navigate}
+                                animateToRegion={this.moveRegions.bind(this)}
+                                handleIndexChange={this.handleIndexChange.bind(this)}
+                                animation={this.animation}/>
+          <View style={styles.button}>
+              <CurrentLocationButton centerMap={this.centerMap.bind(this)} />
+              <ApolloConsumer>
+                {client => (
+                  <RestaurantFetchButton handleRefetch={async () => {
+                    const currLocation = this.handleScreenConstraints();
+                    this.setState(() => ({loading: true}) );
+                    try {
+                      const { data } = await client.query({
+                        query: GET_NEARBY_RESTAURANTS,
+                        variables: currLocation
+                      });
+                      //write to local apollo store if data has changed
+                      const latestLocation = JSON.stringify(currLocation);
+                      client.writeData({ data: { latestQuery: latestLocation }});
+                      this.onRestaurantsFetched(data.getBoxBasedRestaurants);
+                      this.setState(() => ({loading: false}) );
+                    } catch (e){
+                      Alert.alert("An error ocurred - please try again later");
+                      this.setState(() => ({loading: false}) );
+                    }
+                  }}
+                  fetching={this.state.loading}
+                  onRef={fetchButton => this.restaurantFetchButton = fetchButton}/>
+                )}
+                
+              </ApolloConsumer>
+          </View>
         </View>
+      </View>
     );
   }
 }
