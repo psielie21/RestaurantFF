@@ -12,13 +12,14 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
-  TouchableHighlight
+  TouchableHighlight,
+  ActivityIndicator
 } from 'react-native';
-import { Query } from "react-apollo"
+import { Query, Mutation, ApolloConsumer } from "react-apollo"
 import gql from "graphql-tag";
 import { ImagePicker, Permissions } from "expo";
 
-import { logout } from "../../../actions/user"
+const { ReactNativeFile } = require('apollo-upload-client')
 
 const ME_QUERY = gql`
   query {
@@ -32,7 +33,15 @@ const ME_QUERY = gql`
       avatar
     }
   }
-`
+`;
+
+const UPDATE_PROFILE_PIC = gql`
+  mutation UpdateProfile($profilePicture: Upload){
+    updateMe(profilePicture: $profilePicture){
+      _id
+    }
+  }
+`;
 
 const { width, height } = Dimensions.get("window");
 
@@ -56,15 +65,16 @@ class HomeScreen extends React.Component {
   constructor(){
     super();
     this.state = {
-      imgUri: "",
-      modalVisible: false
+      profilePicture:  require('../../../assets/images/default-avatar.png'),
+      modalVisible: false,
+      reloading: false
     }
   }
   static navigationOptions = {
     title: 'Profil',
   };
 
-  _pickImage = async () => {
+  _pickImageAndUpdate = async (update, refetch) => {
     askAsyncMultiple([
       Permissions.CAMERA,
       Permissions.CAMERA_ROLL
@@ -72,13 +82,24 @@ class HomeScreen extends React.Component {
     let result = await ImagePicker.launchCameraAsync({
       //mediaTypes: "Images",
       allowsEditing: true,
-      aspect: [1,1]
+      aspect: [1,1],
+      quality: 0.5
     })
 
     if(!result.cancelled){
       this.setState({
-        imgUri: result.uri
+        profilePicture: {uri: result.uri}
       })
+      let uriParts = result.uri.split('.');
+      let fileType = uriParts[uriParts.length - 1];
+
+      const pictureObject = new ReactNativeFile({
+        uri: result.uri,
+        name: `photo.${fileType}`,
+        type: `image/${fileType}`,
+      });
+      update({ variables: { profilePicture: pictureObject }})
+      refetch();
     }
   }
 
@@ -90,30 +111,43 @@ class HomeScreen extends React.Component {
     return (
       <View style={styles.container}>
         <ScrollView>
-          <Query query={ME_QUERY} onCompleted={(data) => console.log(data)}>
+          <Query query={ME_QUERY} notifyOnNetworkStatusChange>
           {
-            ({ loading, data, error }) => {
+            ({ loading, data, error, refetch, client, networkStatus }) => {
               if(loading){
                 return <Text>Loading....</Text>
               }
               if(error){
-                return <Text>Error</Text>
+                return(
+                  <Button title="ERROR - RETRY" onPress={() => {
+                    refetch()
+                  }} color={"blue"}>
+                    {networkStatus === 4 &&
+                      <ActivityIndicator size="large" color="#00ff00" />
+                    }
+                  </Button>
+                )
               }
+
+              const avatar = data.me.avatar ?  {uri: data.me.avatar} :  require('../../../assets/images/default-avatar.png')  ;
 
               return (
                 <View>
                   <View style={styles.imgContainer}>
-                    <TouchableOpacity onPress={this._pickImage} >
-                      <View style={styles.imgWrapper} >
-                        {!data.me.avatar &&
-                          <Image style={styles.img} source={{uri: this.state.imgUri}}/>
-                        }
-                        {data.me.avatar &&
-                          <Image style={styles.img} source={{uri: data.me.avatar}}/>
-                        }
-                        
-                      </View>
-                    </TouchableOpacity>
+                    <Mutation mutation={UPDATE_PROFILE_PIC} refetchQueries={[{query: ME_QUERY}]}>
+                      {(update, { loading })=> (
+                        <TouchableOpacity onPress={() => this._pickImageAndUpdate(update, refetch)} >
+                        <View style={styles.imgWrapper} >
+                          <Image
+                            source={{uri: data.me.avatar}}
+                            style={styles.img}
+                            resizeMode="cover"
+                          />
+                        </View>
+                      </TouchableOpacity>
+                      )}
+                    </Mutation>
+                    
                   </View>
                   
                   <View style={styles.table}>
@@ -122,20 +156,21 @@ class HomeScreen extends React.Component {
                     <View styles={styles.row}><Text style={styles.wrapperText}><Text style={styles.firstCol}>Bewertungen: </Text><Text style={styles.recCount}>{data.me.recs.length}</Text></Text></View>
                     <View styles={styles.row}><Text style={styles.wrapperText}><Text style={styles.firstCol}>Mitglied seit: </Text><Text style={styles.since}>{data.me.createdAt}</Text></Text></View>
                   </View>
+                <ApolloConsumer>
+                  { client => (
+                    <Button title="Ausloggen" onPress={async() => {
+                      await AsyncStorage.clear();
+                      await client.clearStore();
+                      this.props.navigation.navigate('Auth');
+                    }} color={"red"}/>
+                  )}
+                </ApolloConsumer>
                 </View>
               )
             }
           }
             
           </Query>
-          
-          
-          <Button title="Ausloggen" onPress={async() => {
-            await AsyncStorage.clear();
-            this.props.navigation.navigate('Auth');
-            //await AsyncStorage.removeItem('@restauranttoken');
-            //this.props.logout();
-          }} color={"red"}></Button>
         </ScrollView>
       </View>
     );

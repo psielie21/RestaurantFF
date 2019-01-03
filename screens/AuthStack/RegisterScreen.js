@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Button, AsyncStorage, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, Button, AsyncStorage, ScrollView } from "react-native";
 import t from "tcomb-form-native";
 import { connect } from "react-redux"
 import { Mutation } from "react-apollo"
@@ -80,7 +80,7 @@ class LoginScreen extends React.Component {
                     <Form type={User} ref="regForm" options={options}/>
 
                         <Mutation mutation={SIGNUP} onCompleted={(data) => this._handleAfterSignup(data)}>
-                            {(signup, { data }) => (
+                            {(signup, { error, loading }) => (
                                 <View style={styles.buttonContainer}>
                                     <Button title="account erstellen" onPress={() => {
                                         //check if all forms are valid
@@ -89,6 +89,12 @@ class LoginScreen extends React.Component {
                                             signup({ variables: {...values} })
                                         }
                                     } }/>
+                                    {error &&
+                                        <Text>An error occured</Text>
+                                    }
+                                    {loading &&
+                                        <ActivityIndicator size="large" color="#00ff00" />
+                                    }
                                 </View>
                                 )
                             }

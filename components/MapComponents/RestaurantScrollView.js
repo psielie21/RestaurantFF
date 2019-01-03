@@ -1,10 +1,7 @@
 import React, { Component } from "react";
 import {
     StyleSheet,
-    Text,
-    View,
     Animated,
-    Dimensions,
 } from "react-native";
 
 import { ApolloConsumer } from 'react-apollo';

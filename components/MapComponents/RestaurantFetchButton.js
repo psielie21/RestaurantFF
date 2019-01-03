@@ -16,7 +16,7 @@ export default class RestaurantFetchButton extends Component {
   render(){
     return (
       <View>
-        <TouchableNativeFeedback onPress={async() => this.props.handleRefetch()}>
+        <TouchableNativeFeedback onPress={() => this.props.handleRefetch()}>
           <Entypo name={"magnifying-glass"} size={35} style={{
             padding: 7,
             color: "#FFF5EE"

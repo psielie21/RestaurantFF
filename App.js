@@ -5,12 +5,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { ApolloProvider } from 'react-apollo';
 
 import { ApolloClient } from 'apollo-client';
-import { createHttpLink } from 'apollo-link-http';
+import ApolloLinkTimeout from 'apollo-link-timeout';
 import { setContext } from 'apollo-link-context';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloLink } from 'apollo-link';
 import { withClientState } from 'apollo-link-state';
 import { onError } from 'apollo-link-error';
+import { createUploadLink }  from 'apollo-upload-client';
+
 
 import { createStore } from "redux";
 import { Provider } from "react-redux";
@@ -31,7 +33,7 @@ const cache = new InMemoryCache({
 });
 
 
-const httpLink = createHttpLink({
+const httpLink = createUploadLink({
   uri: 'https://restaurant-ff-server-psielie.c9users.io/graphql',
 });
 
@@ -69,6 +71,8 @@ const stateLink = withClientState({
   }
 });
 
+const timeoutLink = new ApolloLinkTimeout(10000); // 10 second timeout
+
 const client = new ApolloClient({
   link: ApolloLink.from([
     onError(({ graphQLErrors, networkError }) => {
@@ -81,7 +85,8 @@ const client = new ApolloClient({
       if (networkError) console.log(`[Network error]: ${networkError}`);
     }),
     stateLink,
-    authLink.concat(httpLink),
+    authLink,
+    timeoutLink.concat(httpLink),
   ]),
   cache
 });

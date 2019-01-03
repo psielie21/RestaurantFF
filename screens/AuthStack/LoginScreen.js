@@ -1,11 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Button, AsyncStorage } from "react-native";
-import { connect } from "react-redux"
+import { View, 
+        Text, 
+        StyleSheet, 
+        TextInput, 
+        KeyboardAvoidingView, 
+        Keyboard,
+        Button, 
+        ActivityIndicator,
+        AsyncStorage } from "react-native";
 import { Mutation } from "react-apollo"
 import gql from "graphql-tag";
 
-
-import { login } from "../../actions/user"
 
 const LOGIN = gql`
 mutation Login($emailOrUser: String!, $password: String!) {
@@ -15,7 +20,7 @@ mutation Login($emailOrUser: String!, $password: String!) {
 }
 `;
 
-class LoginScreen extends React.Component {
+export default class LoginScreen extends React.Component {
     constructor(){
         super()
         this.state = {
@@ -34,7 +39,6 @@ class LoginScreen extends React.Component {
 
     async _handleLogin(data){
         await AsyncStorage.setItem('@restauranttoken', data.login.token);
-        this.props.login();
         this.props.navigation.navigate('App');
     }
 
@@ -43,8 +47,6 @@ class LoginScreen extends React.Component {
     }
 
     render(){
-
-
         return(
             <View style={styles.root}>
                 <View style={styles.logoContainer}>
@@ -78,12 +80,20 @@ class LoginScreen extends React.Component {
                     />
 
                     <Mutation mutation={LOGIN} onCompleted={(data) => this._handleLogin(data)}>
-                        {(login, { data }) => (
-                            <View style={styles.buttonContainer}>
-                                <Button title="login" onPress={() => {
-                                    login({ variables: {emailOrUser: this.state.emailOrUser, password: this.state.password} })
-                                } }/>
-                            </View>
+                        {(login, { error, loading }) => 
+                            (
+                                <View style={styles.buttonContainer}>
+                                    <Button title="login" onPress={() => {
+                                        Keyboard.dismiss();
+                                        login({ variables: {emailOrUser: this.state.emailOrUser, password: this.state.password} })
+                                    } }/>
+                                    {loading &&
+                                        <ActivityIndicator size="large" color="#00ff00" />
+                                    }
+                                    {error &&
+                                        <Text>Error please try again!</Text>
+                                    }
+                                </View>
                             )
                         }
                     </Mutation>
@@ -142,5 +152,3 @@ const styles = StyleSheet.create({
         marginTop: 10
     }
   })
-
-  export default connect(undefined, { login })(LoginScreen)
