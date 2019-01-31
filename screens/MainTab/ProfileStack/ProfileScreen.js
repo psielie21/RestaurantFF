@@ -119,7 +119,7 @@ class HomeScreen extends React.Component {
               }
               if(error){
                 return(
-                  <Button title="ERROR - RETRY" onPress={() => {
+                  <Button title="ERROR - RETRY" onPress={async() => {               
                     refetch()
                   }} color={"blue"}>
                     {networkStatus === 4 &&

@@ -23,9 +23,12 @@ const options = {
     fields: {
       username: {
         // name field configuration here..
+        autoCapitalize: "none",
+        autoCorrect: false
       },
       email: {
         keyboardType: "email-address",
+        autoCapitalize: "none",
       },
       password: {
           secureTextEntry: true,

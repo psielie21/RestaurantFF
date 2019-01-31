@@ -3,6 +3,7 @@ import { Platform, StatusBar, StyleSheet, View, AsyncStorage } from 'react-nativ
 import { AppLoading, Asset, Font } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 import { ApolloProvider } from 'react-apollo';
+import ConnectionConstants, { development } from "./constants/Connection"
 
 import { ApolloClient } from 'apollo-client';
 import ApolloLinkTimeout from 'apollo-link-timeout';
@@ -33,7 +34,7 @@ const cache = new InMemoryCache({
 
 
 const httpLink = createUploadLink({
-  uri: 'https://restaurant-ff-server-psielie.c9users.io/graphql',
+  uri: ConnectionConstants.graphql,
 });
 
 const authLink = setContext( async(_, { headers }) => {
